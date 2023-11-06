@@ -7,7 +7,8 @@
   "scripts": {
     "generate": "powershell -File gen/setup.ps1",
     "build": "rollup -c rollup.config.ts --configPlugin typescript",
-    "run": "npm run build && node dist/index.js",
+    "compile": "node dist/index.js",
+    "buildAndCompile": "npm run build && npm run compile",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
