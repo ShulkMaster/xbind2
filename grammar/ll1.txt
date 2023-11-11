@@ -1,0 +1,133 @@
+M ::= Uses
+M ::= Component M
+M ::= Style M
+M ::= TypeDef M
+M ::= ''
+
+Uses ::= Use usePath ; M
+usePath ::= id useSubModule
+useSubModule ::= . id UseSubModule
+useSubModule ::= ''
+
+TypeDef ::= type id = { TypeDefBody }
+TypeDefBody ::= id : Type ; TypeDefBody
+TypeDefBody ::= ''
+
+Style ::= style id { CssRules }
+CssRules ::= CssRule
+CssRules ::= ''
+CssRule ::= RuleName : RuleValue ; CssRules
+
+Component ::= component id { ComponentBody }
+ComponentBody ::= VarDeclaration ComponentBody
+ComponentBody ::= propDeclaration ComponentBody
+ComponentBody ::= render ComponentBody
+ComponentBody ::= ''
+
+render ::= Render ( renderFollow
+renderFollow ::= undefined )  ;
+renderFollow ::= template ) ;
+
+VarDeclaration ::= VarMutability id : Type initValue ;
+VarMutability ::= var
+VarMutability ::= val
+initValue ::= = expression
+initValue ::= ''
+
+propDeclaration ::= prop id : Type initValue ;
+
+unaryOperator ::= -
+unaryOperator ::= +
+unaryOperator ::= !
+
+Type ::= id subType
+Type ::= number
+Type ::= string
+Type ::= boolean
+
+subType ::= . id subType
+subType ::= ''
+
+
+postfixExpression ::= primaryExpression postFixFollow
+postFixFollow ::= [ expression ] postFixFollow
+postFixFollow ::= ( argumentList ) postFixFollow
+postFixFollow ::= . id postFixFollow
+postFixFollow ::= ++ postFixFollow
+postFixFollow ::= -- postFixFollow
+postFixFollow ::= ''
+
+primaryExpression ::= id
+primaryExpression ::= constantExpression
+primaryExpression ::= ( expression )
+
+constantExpression ::= number
+constantExpression ::= string
+constantExpression ::= booleanLiteral
+constantExpression ::= undefined
+
+booleanLiteral ::= true
+booleanLiteral ::= false
+
+expression ::= logicalOrExpression ternaryExpression
+ternaryExpression ::= ? expression : expression
+ternaryExpression ::= ''
+
+logicalOrExpression ::= logicalAndExpression logicalOrFollow
+logicalOrFollow ::= || logicalOrExpression
+logicalOrFollow ::= ''
+
+logicalAndExpression ::= equalityExpression logicalAndFollow
+logicalAndFollow ::= && logicalAndExpression
+logicalAndFollow ::= ''
+
+equalityExpression ::= relationalExpression equalityFollow
+equalityFollow ::= == equalityExpression
+equalityFollow ::= === equalityExpression
+equalityFollow ::= != equalityExpression
+equalityFollow ::= !== equalityExpression
+equalityFollow ::= ''
+
+relationalExpression ::= additiveExpression relationalFollow
+relationalFollow ::= < relationalExpression
+relationalFollow ::= > relationalExpression
+relationalFollow ::= <= relationalExpression
+relationalFollow ::= >= relationalExpression
+relationalFollow ::= ''
+
+additiveExpression ::= multiplicativeExpression additiveFollow
+additiveFollow ::= + additiveExpression
+additiveFollow ::= - additiveExpression
+additiveFollow ::= ''
+
+multiplicativeExpression ::= castExpression multiplicativeFollow
+multiplicativeFollow ::= * multiplicativeExpression
+multiplicativeFollow ::= / multiplicativeExpression
+multiplicativeFollow ::= % multiplicativeExpression
+multiplicativeFollow ::= ''
+
+castExpression ::= unaryExpression castFollow
+castFollow ::= as Type
+castFollow ::= ''
+
+prefixOperator ::= --
+prefixOperator ::= ++
+prefixOperator ::= ''
+
+unaryExpression ::= postfixExpression
+unaryExpression ::= unaryOperator postfixExpression
+
+template ::= < id attributes templateFollow
+templateFollow ::= > templateBody </ id > template
+templateFollow ::= /> template
+template ::= ''
+
+attributes ::= attribute attributes
+attributes ::= ''
+attribute ::= id = { expression }
+attribute ::= { id }
+
+
+templateBody ::= template
+templateBody ::= charData templateBody
+templateBody ::= { expression } templateBody
