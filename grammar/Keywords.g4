@@ -20,7 +20,7 @@ Void: 'void';
 Color: 'color';
 
 // values
-Null: 'null';
+Undefined: 'undefined';
 BoolValue: 'true' | 'false';
 NumberValue: [0-9_]+('.'[0-9_]+)?;
 

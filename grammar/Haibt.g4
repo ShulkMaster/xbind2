@@ -6,12 +6,15 @@ options {
 
 program: module EOF;
 
-module: uses | (component | style) module | ;
+module: uses | (component | style | typeDef) module | ;
 
 uses: Use usePath SemiColon module;
 
 usePath: Identifier useSubModule;
 useSubModule: Dot Identifier useSubModule | ;
+
+typeDef: Type Identifier Equal OBrace typeDefBody CBrace;
+typeDefBody: Identifier Colon varType SemiColon typeDefBody | ;
 
 style: Style OBrace CBrace;
 
@@ -21,14 +24,14 @@ componentBody: (varDeclaration | propDeclaration | render) componentBody | ;
 varDeclaration: varMutability Identifier Colon varType SemiColon;
 varMutability: Var | Val;
 varType: primitiveType | Identifier subType;
-primitiveType: Number | String | Boolean | Void | Color | Null;
+primitiveType: Number | String | Boolean | Void | Color | Undefined;
 subType: Dot Identifier subType | ;
 
 propDeclaration: Prop Identifier Colon varType initValue SemiColon;
 initValue: Assign expression | ;
 
 render: Render OParen renderFollow;
-renderFollow: (Null | template) CParen SemiColon;
+renderFollow: (Undefined | template) CParen SemiColon;
 
 expression: logicalOrExpression;
 
@@ -72,7 +75,7 @@ postfixFollow:
 
 primaryExpression: Identifier | constantExpression | OParen expression CParen;
 
-constantExpression: NumberValue | StringLiteral | BoolValue | Null;
+constantExpression: NumberValue | StringLiteral | BoolValue | Undefined;
 
 template: LessThan Identifier attributes templateFollow | ;
 templateFollow: (GreaterThan templateBody CloseTag Identifier GreaterThan template) | Slash GreaterThan template;
