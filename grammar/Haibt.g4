@@ -23,9 +23,8 @@ componentBody: (varDeclaration | propDeclaration | render) componentBody | ;
 
 varDeclaration: varMutability Identifier Colon varType SemiColon;
 varMutability: Var | Val;
-varType: primitiveType | Identifier subType;
+varType: primitiveType | Identifier;
 primitiveType: Number | String | Boolean | Void | Color | Undefined;
-subType: Dot Identifier subType | ;
 
 propDeclaration: Prop Identifier Colon varType initValue SemiColon;
 initValue: Assign expression | ;

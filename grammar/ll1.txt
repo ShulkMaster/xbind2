@@ -40,14 +40,10 @@ unaryOperator ::= -
 unaryOperator ::= +
 unaryOperator ::= !
 
-Type ::= id subType
+Type ::= id
 Type ::= number
 Type ::= string
 Type ::= boolean
-
-subType ::= . id subType
-subType ::= ''
-
 
 postfixExpression ::= primaryExpression postFixFollow
 postFixFollow ::= [ expression ] postFixFollow
