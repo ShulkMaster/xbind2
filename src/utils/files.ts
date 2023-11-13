@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Logger } from './logger';
+import { CharStream, CharStreams } from 'antlr4';
 
 export function makeDirs(filePath: string): void {
   const directory = path.dirname(filePath);
@@ -28,4 +29,8 @@ export function findFiles(dir: string): string[] {
 
   traverse(dir);
   return files;
+}
+
+export function openFileStream(filePath: string): CharStream {
+  return CharStreams.fromPathSync(filePath, 'utf8');
 }

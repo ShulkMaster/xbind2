@@ -6,14 +6,14 @@ options {
 
 program: module EOF;
 
-module: uses | (component | style | typeDef) module | ;
+module: (uses | component | style | typeDef) module | ;
 
 uses: Use usePath SemiColon module;
 
 usePath: Identifier useSubModule;
 useSubModule: Dot Identifier useSubModule | ;
 
-typeDef: Type Identifier Equal OBrace typeDefBody CBrace;
+typeDef: Type Identifier Assign OBrace typeDefBody CBrace;
 typeDefBody: Identifier Colon varType SemiColon typeDefBody | ;
 
 style: Style OBrace CBrace;

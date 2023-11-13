@@ -36,32 +36,36 @@ export class Logger {
     }
   }
 
-  private static log(level: LogLevel, message: Loggable): void {
+  private static log(level: LogLevel, message: Loggable, padding: number | undefined): void {
     if (level < this.level) {
       return;
     }
     const typeOf = typeof message;
+    const pad = padding ? ' '.repeat(padding) : '';
     if(typeOf !== 'object') {
-      this.sink(message.toString());
+      this.sink(`${pad}${message}`);
       return;
     }
 
-    this.sink(JSON.stringify(message, undefined, 2));
+    const json = JSON.stringify(message, undefined, 2);
+    json.split('\n').forEach((line) => {
+      this.sink(`${pad}${line}`);
+    });
   }
 
-  public static debug(message: Loggable): void {
-    this.log(LogLevel.DEBUG, message);
+  public static debug(message: Loggable, padding?: number): void {
+    this.log(LogLevel.DEBUG, message, padding);
   }
 
-  public static info(message: Loggable): void {
-    this.log(LogLevel.INFO, message);
+  public static info(message: Loggable, padding?: number): void {
+    this.log(LogLevel.INFO, message, padding);
   }
 
-  public static warn(message: Loggable): void {
-    this.log(LogLevel.WARN, message);
+  public static warn(message: Loggable, padding?: number): void {
+    this.log(LogLevel.WARN, message, padding);
   }
 
-  public static error(message: Loggable): void {
-    this.log(LogLevel.ERROR, message);
+  public static error(message: Loggable, padding?: number): void {
+    this.log(LogLevel.ERROR, message, padding);
   }
 }
