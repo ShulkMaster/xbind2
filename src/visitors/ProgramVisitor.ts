@@ -1,15 +1,10 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import { ProgramContext, ComponentContext } from 'parser/Haibt';
-import { ComponentNode, ComponentResult, ProgramNode, ProgramResult } from 'types/nodes';
+import { ComponentNode, ProgramNode, ProgramResult } from 'types/nodes';
+import { ComponentVisitor } from './ComponentVisitor';
 
 export class ProgramVisitor extends BaseVisitor<ProgramResult> {
-  private readonly componentVisitor: BaseVisitor<ComponentResult>;
   private readonly components: ComponentNode[] = [];
-
-  constructor(componentVisitor: BaseVisitor<ComponentResult>) {
-    super();
-    this.componentVisitor = componentVisitor;
-  }
 
   visitProgram = (ctx: ProgramContext): ProgramNode => {
     const rootModule = ctx.module_();
@@ -31,11 +26,8 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
   };
 
   visitComponent = (ctx: ComponentContext): void => {
-    const result = this.componentVisitor.visit(ctx);
-    if (result.type !== 'component') {
-      throw new Error(`Expected component result ${result.type}`);
-    }
-
+    const componentVisitor = new ComponentVisitor();
+    const result = componentVisitor.visitComponent(ctx);
     this.components.push(result);
   };
 }

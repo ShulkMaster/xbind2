@@ -2,7 +2,6 @@ import { CharStream, CommonTokenStream } from 'antlr4';
 import Lexer from 'parser/HaibtLexer';
 import Parser, { ProgramContext } from 'parser/Haibt';
 import { ProgramVisitor } from './ProgramVisitor';
-import { ComponentVisitor } from './ComponentVisitor';
 
 export function parseStream(stream: CharStream): ProgramContext {
   const lexer = new Lexer(stream);
@@ -12,6 +11,5 @@ export function parseStream(stream: CharStream): ProgramContext {
 }
 
 export function createVisitor(): ProgramVisitor {
-  const componentVisitor = new ComponentVisitor();
-  return new ProgramVisitor(componentVisitor);
+  return new ProgramVisitor();
 }
