@@ -1,5 +1,5 @@
 import { Token } from 'types/token';
-import { TypeNode } from './types';
+import { TypeNode, TypeRefNode } from './types';
 import { TemplateNode } from './template';
 
 export type PropertyNode = {
@@ -17,6 +17,7 @@ export type ComponentNode = {
   type: 'component';
   name: Token;
   properties: PropertyNode[];
+  propsType: TypeRefNode;
   template: TemplateNode;
 };
 

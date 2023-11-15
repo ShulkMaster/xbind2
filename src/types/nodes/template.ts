@@ -32,6 +32,4 @@ export type TemplateFollowNode = {
   siblings: TagNode[];
 };
 
-
-
 export type TemplateResult = ChildNode[] | CharDataNode | TemplateFollowNode | void;

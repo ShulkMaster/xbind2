@@ -3,6 +3,7 @@ import { TypeDeclarationNode } from './types';
 import { ComponentNode } from './component';
 
 export * from './component';
+export * from './template';
 
 export type ProgramNode = {
   sourceFile: string;

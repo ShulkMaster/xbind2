@@ -5,6 +5,7 @@ import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
 import { TagNode } from 'types/nodes/template';
 import { TemplateVisitor } from './TemplateVisitor';
+import { Token } from 'types/token';
 
 export class ComponentVisitor extends BaseVisitor<ComponentResult> {
   private readonly typeVisitor = new TypeVisitor();
@@ -20,6 +21,10 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
       type: 'component',
       name: symbolToToken(name),
       properties: this.props,
+      propsType: {
+        primitive: false,
+        typeName: { type: 0, text: `${name.text}Props` } as Token,
+      },
       template: {
         type: 'template',
         children: this.tags,
