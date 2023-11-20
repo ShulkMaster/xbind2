@@ -45,28 +45,17 @@ Type ::= number
 Type ::= string
 Type ::= boolean
 
-postfixExpression ::= primaryExpression postFixFollow
-postFixFollow ::= [ expression ] postFixFollow
-postFixFollow ::= ( argumentList ) postFixFollow
-postFixFollow ::= . id postFixFollow
-postFixFollow ::= ++ postFixFollow
-postFixFollow ::= -- postFixFollow
-postFixFollow ::= ''
-
-primaryExpression ::= id
-primaryExpression ::= constantExpression
-primaryExpression ::= ( expression )
-
-constantExpression ::= number
-constantExpression ::= string
-constantExpression ::= booleanLiteral
-constantExpression ::= undefined
-
 booleanLiteral ::= true
 booleanLiteral ::= false
 
-expression ::= logicalOrExpression ternaryExpression
-ternaryExpression ::= ? expression : expression
+expression ::= assignmentExpression
+
+assignmentExpression ::= conditionalExpression assignmentFollow
+assignmentFollow ::= = assignmentExpression
+assignmentFollow ::= ''
+
+conditionalExpression ::= logicalOrExpression ternaryExpression
+ternaryExpression ::= ? expression : conditionalExpression
 ternaryExpression ::= ''
 
 logicalOrExpression ::= logicalAndExpression logicalOrFollow
@@ -113,6 +102,23 @@ prefixOperator ::= ''
 unaryExpression ::= postfixExpression
 unaryExpression ::= unaryOperator postfixExpression
 
+postfixExpression ::= primaryExpression postFixFollow
+postFixFollow ::= [ expression ] postFixFollow
+postFixFollow ::= ( argumentList ) postFixFollow
+postFixFollow ::= . id postFixFollow
+postFixFollow ::= ++ postFixFollow
+postFixFollow ::= -- postFixFollow
+postFixFollow ::= ''
+
+primaryExpression ::= id
+primaryExpression ::= constantExpression
+primaryExpression ::= ( expression )
+
+constantExpression ::= number
+constantExpression ::= string
+constantExpression ::= booleanLiteral
+constantExpression ::= undefined
+
 template ::= < id attributes templateFollow
 templateFollow ::= > templateBody </ id > template
 templateFollow ::= /> template
@@ -144,14 +150,12 @@ statementList ::= statement statementList
 statementList ::= ''
 
 statement ::= returnStatement
-statement ::= assigmentStatement
 statement ::= ifStatement
+statement ::= expression ;
 
 returnStatement ::= return returnExpression ;
 returnExpression ::= expression
 returnExpression ::= ''
-
-assigmentStatement ::= id = expression ;
 
 ifStatement ::= if ( expression ) { statement } elseStatement
 elseStatement ::= else { statement }
