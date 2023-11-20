@@ -18,10 +18,11 @@
     "noImplicitAny": true,
     "noFallthroughCasesInSwitch": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "outdir"
   ]
 }

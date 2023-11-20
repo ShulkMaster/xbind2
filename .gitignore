@@ -3,3 +3,4 @@ dist
 .idea
 src/parser
 grammar
+outdir
