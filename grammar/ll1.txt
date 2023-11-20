@@ -127,3 +127,32 @@ attribute ::= { id }
 templateBody ::= template
 templateBody ::= charData templateBody
 templateBody ::= { expression } templateBody
+
+functionDeclaration ::= function id ( parameterList ) ReturnType functionBody
+ReturnType ::= : Type
+ReturnType ::= ''
+parameterList ::= parameter parameterListFollow
+parameterList ::= ''
+
+parameterListFollow ::= , parameter parameterListFollow
+parameterListFollow ::= ''
+
+parameter ::= id : Type
+
+functionBody ::= { statementList }
+statementList ::= statement statementList
+statementList ::= ''
+
+statement ::= returnStatement
+statement ::= assigmentStatement
+statement ::= ifStatement
+
+returnStatement ::= return returnExpression ;
+returnExpression ::= expression
+returnExpression ::= ''
+
+assigmentStatement ::= id = expression ;
+
+ifStatement ::= if ( expression ) { statement } elseStatement
+elseStatement ::= else { statement }
+elseStatement ::= ''

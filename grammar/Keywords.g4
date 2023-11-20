@@ -5,6 +5,12 @@ Component: 'component';
 Style: 'style';
 As: 'as';
 
+// staments
+If: 'if';
+Else: 'else';
+While: 'while';
+Return: 'return';
+
 // variables
 Val: 'val';
 Var: 'var';
