@@ -19,9 +19,9 @@ typeDefBody: Identifier Colon varType SemiColon typeDefBody | ;
 style: Style OBrace CBrace;
 
 component: Component Identifier OBrace componentBody CBrace;
-componentBody: (varDeclaration | propDeclaration | render) componentBody | ;
+componentBody: (varDeclaration | propDeclaration | render | functionDeclaration) componentBody | ;
 
-varDeclaration: varMutability Identifier Colon varType SemiColon;
+varDeclaration: varMutability Identifier Colon varType initValue SemiColon ;
 varMutability: Var | Val;
 varType: primitiveType | Identifier;
 primitiveType: Number | String | Boolean | Void | Color | Undefined;
@@ -32,7 +32,13 @@ initValue: Assign expression | ;
 render: Render OParen renderFollow;
 renderFollow: (Undefined | template) CParen SemiColon;
 
-expression: logicalOrExpression;
+expression: assignmentExpression;
+
+assignmentExpression: conditionalExpression assignmentFollow;
+assignmentFollow: Assign assignmentExpression | ;
+
+conditionalExpression: logicalOrExpression ternaryExpression;
+ternaryExpression: Question expression Colon conditionalExpression | ;
 
 logicalOrExpression: logicalAndExpression logicalOrFollow;
 logicalOrFollow: Or logicalOrExpression | ;
@@ -92,3 +98,32 @@ templateBody:
 
 charData: ~('<'|'</'|'{')+;
 
+
+functionDeclaration: Function Identifier OParen parameterList CParen returnType functionBody ;
+
+returnType: Colon varType | ;
+
+parameterList: parameter parameterListFollow | ;
+parameter: Identifier Colon varType;
+parameterListFollow: Comma parameterList | ;
+
+functionBody: OBrace statementList CBrace;
+
+statementList: statement statementList | ;
+
+statement:
+  returnStatement |
+  assigmentStatement |
+  varDeclaration |
+  expressionStatement |
+  ifStatement ;
+
+returnStatement: Return result SemiColon;
+result: expression | ;
+
+assigmentStatement: Identifier Assign expression SemiColon ;
+expressionStatement: expression SemiColon;
+
+ifStatement: If OParen expression CParen ifBody elseStatement;
+ifBody: OBrace statementList CBrace;
+elseStatement: Else ifBody | ;
