@@ -4,6 +4,7 @@ import { ComponentNode } from './component';
 
 export * from './component';
 export * from './template';
+export * from './types';
 
 export type ProgramNode = {
   sourceFile: string;
