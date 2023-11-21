@@ -1,49 +1,76 @@
+import { Token } from 'types/token';
+
 export type ExpressionNode = AssignmentExpressionNode;
 
+export enum ExpressionKind {
+  AssignmentExpression,
+  TernaryExpression,
+  ConditionalExpression,
+  LogicalOrExpression,
+  LogicalAndExpression,
+  EqualityExpression,
+  RelationalExpression,
+  AdditiveExpression,
+}
+
 export type AssignmentExpressionNode = {
-  kind: 'AssignmentExpression';
-  assignee: ConditionalExpressionNode;
-  assignor: AssignmentExpressionNode | null;
+  kind: ExpressionKind.AssignmentExpression;
+  assignee: ExpressionResult;
+  assignor: ExpressionResult;
 }
 
 export type TernaryExpressionNode = {
-  kind: 'TernaryExpression';
-  trueBranch: ExpressionNode;
-  falseBranch: ConditionalExpressionNode;
+  kind: ExpressionKind.TernaryExpression;
+  trueBranch: ExpressionResult;
+  falseBranch: ExpressionResult;
 }
 
 export type ConditionalExpressionNode = {
-  kind: 'ConditionalExpression';
-  condition: LogicalOrExpressionNode;
-  results: TernaryExpressionNode | null;
+  kind: ExpressionKind.ConditionalExpression;
+  condition: ExpressionResult;
+  results: TernaryExpressionNode;
 }
 
 export type LogicalOrExpressionNode = {
-  kind: 'LogicalOrExpression';
-  left: LogicalAndExpressionNode;
-  right: LogicalOrExpressionNode | null;
+  kind: ExpressionKind.LogicalOrExpression;
+  left: ExpressionResult;
+  right: ExpressionResult;
 };
 
 export type LogicalAndExpressionNode = {
-  kind: 'LogicalAndExpression';
-  left: EqualityExpressionNode;
-  right: LogicalAndExpressionNode | null;
+  kind: ExpressionKind.LogicalAndExpression;
+  left: ExpressionResult;
+  right: ExpressionResult;
 };
 
 export type EqualityExpressionNode = {
-  kind: 'EqualityExpression';
-  left: RelationalExpressionNode;
-  right: EqualityExpressionNode | null;
+  kind: ExpressionKind.EqualityExpression;
+  left: ExpressionResult;
+  operator: Token;
+  right: ExpressionResult;
 };
 
 export type RelationalExpressionNode = {
-  kind: 'RelationalExpression';
-  left: AdditiveExpressionNode;
-  right: RelationalExpressionNode | null;
+  kind: ExpressionKind.RelationalExpression;
+  left: ExpressionResult;
+  operator: Token;
+  right: ExpressionResult;
 };
 
 export type AdditiveExpressionNode = {
-  kind: 'AdditiveExpression';
+  kind: ExpressionKind.AdditiveExpression;
+  operator: Token;
   left: number;
-  right: AdditiveExpressionNode | null;
+  right: ExpressionResult;
 };
+
+export type ExpressionResult =
+  | AssignmentExpressionNode
+  | ConditionalExpressionNode
+  | TernaryExpressionNode
+  | LogicalOrExpressionNode
+  | LogicalAndExpressionNode
+  | EqualityExpressionNode
+  | RelationalExpressionNode
+  | AdditiveExpressionNode
+  ;

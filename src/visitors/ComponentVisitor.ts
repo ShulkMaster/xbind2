@@ -1,14 +1,16 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
-import { ComponentResult, ComponentNode, PropertyNode } from 'types/nodes/component';
+import { ComponentResult, ComponentNode, PropertyNode } from 'types/nodes';
 import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
 import { TagNode } from 'types/nodes/template';
 import { TemplateVisitor } from './TemplateVisitor';
 import { Token } from 'types/token';
+import { ExpressionVisitor } from './ExpressionVisitor';
 
 export class ComponentVisitor extends BaseVisitor<ComponentResult> {
   private readonly typeVisitor = new TypeVisitor();
+  private readonly expVisitor = new ExpressionVisitor();
   private readonly props: PropertyNode[] = [];
   private tags: TagNode[] = [];
 
@@ -37,8 +39,14 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
     const name = ctx.Identifier().symbol;
     const colon = ctx.Colon().symbol;
     const type = ctx.varType();
-    //const initializer = ctx.initValue();
+    const initializerCtx = ctx.initValue();
     const semi = ctx.SemiColon().symbol;
+
+    let initializer: PropertyNode['initializer'] = undefined;
+
+    if(initializerCtx) {
+      initializer = this.expVisitor.visitExpression(initializerCtx.expression());
+    }
 
     const typeAnnotation = this.typeVisitor.visitVarType(type);
 
@@ -47,7 +55,7 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
       property: symbolToToken(prop),
       name: symbolToToken(name),
       colon: symbolToToken(colon),
-      initializer: '',
+      initializer,
       optional: false,
       typeAnnotation,
       semicolon: symbolToToken(semi),

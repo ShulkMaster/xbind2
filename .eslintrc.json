@@ -29,7 +29,7 @@
       "error",
       "only-multiline"
     ],
-    "no-unused-vars": "warn",
+    "no-unused-vars": "off",
     "no-use-before-define": "off",
     "no-trailing-spaces": "warn",
     "camelcase": "warn",

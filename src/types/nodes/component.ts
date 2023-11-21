@@ -1,6 +1,7 @@
 import { Token } from 'types/token';
 import { TypeNode, TypeRefNode } from './types';
 import { TemplateNode } from './template';
+import { ExpressionResult } from './expression';
 
 export type PropertyNode = {
   type: 'property';
@@ -9,7 +10,7 @@ export type PropertyNode = {
   colon: Token;
   typeAnnotation: TypeNode;
   optional: boolean;
-  initializer: string | undefined;
+  initializer: ExpressionResult | undefined;
   semicolon: Token;
 }
 
