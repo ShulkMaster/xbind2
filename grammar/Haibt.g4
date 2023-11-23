@@ -80,7 +80,7 @@ postfixFollow:
 
 primaryExpression: Identifier | constantExpression | OParen expression CParen;
 
-constantExpression: NumberValue | StringLiteral | BoolValue | Undefined;
+constantExpression: NumberValue | StringLiteral | BoolValue | Undefined | HEX_COLOR;
 
 template: LessThan Identifier attributes templateFollow | ;
 templateFollow: (GreaterThan templateBody CloseTag Identifier GreaterThan template) | Slash GreaterThan template;

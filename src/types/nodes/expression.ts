@@ -1,4 +1,5 @@
 import { Token } from 'types/token';
+import { TypeNode } from './types';
 
 export type ExpressionNode = AssignmentExpressionNode;
 
@@ -11,6 +12,12 @@ export enum ExpressionKind {
   EqualityExpression,
   RelationalExpression,
   AdditiveExpression,
+  MultiplicativeExpression,
+  CastExpression,
+  UnaryExpression,
+  PostfixExpression,
+  PrimaryExpression,
+  constantExpression,
 }
 
 export type AssignmentExpressionNode = {
@@ -60,8 +67,56 @@ export type RelationalExpressionNode = {
 export type AdditiveExpressionNode = {
   kind: ExpressionKind.AdditiveExpression;
   operator: Token;
-  left: number;
+  left: ExpressionResult;
   right: ExpressionResult;
+};
+
+export type MultiplicativeExpressionNode = {
+  kind: ExpressionKind.MultiplicativeExpression;
+  operator: Token;
+  left: ExpressionResult;
+  right: ExpressionResult;
+};
+
+export type CastExpressionNode = {
+  kind: ExpressionKind.CastExpression;
+  left: ExpressionResult;
+  as: TypeNode;
+};
+
+export type UnaryExpressionNode = {
+  kind: ExpressionKind.UnaryExpression;
+  operator: Token;
+  right: ExpressionResult;
+};
+
+export type PostfixExpressionNode = {
+  kind: ExpressionKind.PostfixExpression;
+  primary: ExpressionResult;
+  operator: Token | undefined;
+  call: [Token, Token] | undefined;
+  indexed: {
+    open: Token;
+    index: ExpressionResult;
+    close: Token;
+  } | undefined;
+  follow: ExpressionResult | undefined;
+};
+
+export type PrimaryExpressionNode = {
+  kind: ExpressionKind.PrimaryExpression;
+  identifier: Token | undefined;
+  constantExpression: ConstantExpressionNode | undefined;
+  groupExpression: {
+    open: Token;
+    expression: ExpressionResult;
+    close: Token;
+  } | undefined;
+};
+
+export type ConstantExpressionNode = {
+  kind: ExpressionKind.constantExpression;
+  value: Token;
 };
 
 export type ExpressionResult =
@@ -73,4 +128,10 @@ export type ExpressionResult =
   | EqualityExpressionNode
   | RelationalExpressionNode
   | AdditiveExpressionNode
+  | MultiplicativeExpressionNode
+  | CastExpressionNode
+  | UnaryExpressionNode
+  | PostfixExpressionNode
+  | PrimaryExpressionNode
+  | ConstantExpressionNode
   ;

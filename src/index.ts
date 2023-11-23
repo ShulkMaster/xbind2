@@ -41,21 +41,22 @@ function main(args: string[]): number {
   try {
     const visitor = createVisitor();
     const result = visitor.visitProgram(ast);
+    Logger.info(result);
 
-    const reactDir = 'outdir\\react\\samples\\moduleA\\SubModuleD\\span.tsx';
-    makeDirs(reactDir);
-    const plugin = new ReactPlugin();
-    const printer = new Printer();
-    plugin.writeProgram(result, printer);
-    printer.printToFile(reactDir);
-
-
-    const vueDir = 'outdir\\vue\\samples\\moduleA\\SubModuleD\\span.vue';
-    makeDirs(vueDir);
-    const vuePlugin = new VuePlugin();
-    const vuePrinter = new Printer();
-    vuePlugin.writeProgram(result, vuePrinter);
-    vuePrinter.printToFile(vueDir);
+    // const reactDir = 'outdir\\react\\samples\\moduleA\\SubModuleD\\span.tsx';
+    // makeDirs(reactDir);
+    // const plugin = new ReactPlugin();
+    // const printer = new Printer();
+    // plugin.writeProgram(result, printer);
+    // printer.printToFile(reactDir);
+    //
+    //
+    // const vueDir = 'outdir\\vue\\samples\\moduleA\\SubModuleD\\span.vue';
+    // makeDirs(vueDir);
+    // const vuePlugin = new VuePlugin();
+    // const vuePrinter = new Printer();
+    // vuePlugin.writeProgram(result, vuePrinter);
+    // vuePrinter.printToFile(vueDir);
 
   } catch (e: unknown) {
     Logger.error((e as Error).message);

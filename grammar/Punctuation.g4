@@ -12,3 +12,4 @@ Question: '?';
 Colon: ':';
 Dot: '.';
 Ellipsis: '...';
+Hash: '#';
