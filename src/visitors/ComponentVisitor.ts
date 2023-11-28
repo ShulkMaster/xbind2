@@ -5,7 +5,6 @@ import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
 import { TagNode } from 'types/nodes/template';
 import { TemplateVisitor } from './TemplateVisitor';
-import { Token } from 'types/token';
 import { ExpressionVisitor } from './ExpressionVisitor';
 
 export class ComponentVisitor extends BaseVisitor<ComponentResult> {
@@ -23,10 +22,7 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
       type: 'component',
       name: symbolToToken(name),
       properties: this.props,
-      propsType: {
-        primitive: false,
-        typeName: { type: 0, text: `${name.text}Props` } as Token,
-      },
+      propsTypeName: undefined,
       template: {
         type: 'template',
         children: this.tags,
@@ -44,7 +40,7 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
 
     let initializer: PropertyNode['initializer'] = undefined;
 
-    if(initializerCtx) {
+    if(initializerCtx.getChildCount()) {
       initializer = this.expVisitor.visitExpression(initializerCtx.expression());
     }
 

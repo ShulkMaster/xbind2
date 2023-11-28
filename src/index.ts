@@ -1,11 +1,11 @@
-import { findFiles, makeDirs, openFileStream } from './utils/files';
-import { Logger } from './utils/logger';
+import { findFiles, openFileStream } from './utils/files';
+import { Logger } from './utils';
 import { LogLevel } from './types/logging';
 import { Arguments } from './types/console';
 import { createVisitor, parseStream } from './visitors';
 import { ReactPlugin } from './plugins/react';
-import { Printer } from './utils';
 import { VuePlugin } from './plugins/vue';
+import { Compiler, SymbolTable } from './compiler';
 
 export function toArgs(args: string[]): Arguments {
   const scripArgs = args.slice(2);
@@ -35,29 +35,27 @@ function main(args: string[]): number {
   for (const file of sourceFiles) {
     Logger.info(`Found ${file}`, 2);
   }
-  const stream = openFileStream('samples\\moduleA\\SubModuleD\\span.hbt');
+  const fileName = 'samples\\moduleA\\SubModuleD\\Span.hbt';
+  const stream = openFileStream(fileName);
   const ast = parseStream(stream);
+  const source = stream.getText(0, stream.size);
+  const sb = new SymbolTable();
+  const compiler = new Compiler(sb);
+  const plugin = new VuePlugin();
 
   try {
     const visitor = createVisitor();
     const result = visitor.visitProgram(ast);
-    Logger.info(result);
 
-    // const reactDir = 'outdir\\react\\samples\\moduleA\\SubModuleD\\span.tsx';
-    // makeDirs(reactDir);
-    // const plugin = new ReactPlugin();
-    // const printer = new Printer();
-    // plugin.writeProgram(result, printer);
-    // printer.printToFile(reactDir);
-    //
-    //
-    // const vueDir = 'outdir\\vue\\samples\\moduleA\\SubModuleD\\span.vue';
-    // makeDirs(vueDir);
-    // const vuePlugin = new VuePlugin();
-    // const vuePrinter = new Printer();
-    // vuePlugin.writeProgram(result, vuePrinter);
-    // vuePrinter.printToFile(vueDir);
+    result.sourceFile = fileName;
+    result.sourceCode = source;
+    sb.registerProgram(result);
+    const success = compiler.check(result);
+    if (!success) {
+      return ReturnCode.ERROR;
+    }
 
+    plugin.writeProgram(result);
   } catch (e: unknown) {
     Logger.error((e as Error).message);
     console.log(e);

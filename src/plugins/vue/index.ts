@@ -1,61 +1,70 @@
 import * as N from 'types/nodes';
-import { Logger, Printer } from 'utils';
+import { Logger, makeDirs, Printer } from 'utils';
+import path from 'path';
+import { TypeDeclarationNode } from 'types/nodes';
 
 export class VuePlugin {
+  public readonly outDir = 'outdir\\vue\\';
+
   public constructor() {
     Logger.info('Vue plugin loaded');
   }
 
-  public writeProgram(program: N.ProgramNode, printer: Printer): void {
-    const { types, components } = program;
-    for (const component of components) {
-      this.writeComponent(component, printer);
-    }
-  }
-
-  private writeComponent(component: N.ComponentNode, printer: Printer): void {
-    this.writeScript(component, printer);
-    printer.crlf();
-    this.writeTemplate(component, printer);
-  }
-
-  private writeScript(component: N.ComponentNode, printer: Printer): void {
-    const { propsType, properties } = component;
-
-    printer.appendLine('<script setup lang="ts">');
-
-    const propType = propsType.typeName.text;
-    printer.appendLine(`export type ${propType} = {`);
-    for (const property of properties) {
-      const propName = property.name.text;
-      const annotation = property.typeAnnotation;
-      if (annotation.primitive) {
-        const type = annotation.name;
-        printer.appendLine(`${propName}: ${type};`, 2);
+  private typesToImport(types: TypeDeclarationNode[]): string[] {
+    const imports: string[] = [];
+    for (const type of types) {
+      const typeName = type.typeName;
+      if (typeof typeName === 'string') {
+        imports.push(typeName);
         continue;
       }
-      const typeName = annotation.typeName.text;
-      printer.appendLine(`${propName}: ${typeName};`, 2);
+
+      imports.push(typeName.text);
     }
-    printer.appendLine('};');
-    printer.crlf();
-    printer.appendLine(`defineProps<${propType}>();`);
-    printer.appendLine('</script>');
+    return imports;
   }
 
-  private writeSetup(component: N.ComponentNode, printer: Printer): void {
-    const { properties, template } = component;
+  public writeProgram(program: N.ProgramNode): void {
+    const { components } = program;
+    const baseDir = this.outDir + program.namespace.join(path.sep);
+    const printer = new Printer();
 
-    printer.appendLine('setup(props) {', 2);
-    printer.appendLine('return {', 4);
-
-    for (const property of properties) {
-      const propName = property.name.text;
-      printer.appendLine(`${propName}: toRef(props, '${propName}'),`, 6);
+    for (const type of program.types) {
+      printer.printType(type);
     }
+    const typeFilename = baseDir + path.sep + 'types.ts';
+    makeDirs(typeFilename);
+    printer.flushToFile(typeFilename);
 
-    printer.appendLine('};', 4);
-    printer.appendLine('},', 2);
+    for (const component of components) {
+      this.writeComponent(component, program ,printer);
+    }
+  }
+
+  private writeComponent(component: N.ComponentNode, program: N.ProgramNode, printer: Printer): void {
+    const imports = this.typesToImport(program.types);
+    const baseDir = this.outDir + program.namespace.join(path.sep);
+    makeDirs(baseDir);
+
+    this.writeScript(component, imports, printer);
+    printer.crlf();
+    this.writeTemplate(component, printer);
+    const fileName = this.formatName(component.name.text);
+    const filePath = baseDir + fileName + '.vue';
+    printer.flushToFile(filePath);
+  }
+
+  private writeScript(component: N.ComponentNode, imports: string[], printer: Printer): void {
+    const { propsTypeName } = component;
+
+    printer.appendLine('<script setup lang="ts">');
+    printer.appendLine(`import { ${imports.join(', ')} } from './types';`, 2);
+    if (propsTypeName) {
+      printer.appendLine(`defineProps<${propsTypeName}>();`, 2);
+    } else {
+      printer.appendLine('defineProps<{}>();', 2);
+    }
+    printer.appendLine('</script>');
   }
 
   private writeTemplate(component: N.ComponentNode, printer: Printer): void {

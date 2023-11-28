@@ -15,11 +15,11 @@ export type TypeNode = PrimitiveTypeNode | TypeRefNode;
 
 export type MemberNode = {
   name: Token;
-  optional: Token | null;
+  optional: boolean;
   type: TypeNode;
 }
 
 export type TypeDeclarationNode = {
-  typeName: Token;
+  typeName: Token | string;
   members: MemberNode[];
 };
