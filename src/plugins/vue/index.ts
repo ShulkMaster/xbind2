@@ -2,6 +2,7 @@ import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer } from 'utils';
 import path from 'path';
 import { TypeDeclarationNode } from 'types/nodes';
+import { Writer } from '../../utils/Writter';
 
 export class VuePlugin {
   public readonly outDir = 'outdir\\vue\\';
@@ -89,6 +90,9 @@ export class VuePlugin {
         case 'charData':
           printer.appendLine(child.contents.join(' '), indent);
           break;
+          case 'expression':
+            printer.appendLine(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
+            break;
       }
     }
   }

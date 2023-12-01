@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { TypeDeclarationNode } from '../types/nodes';
+import { TypeDeclarationNode } from 'types/nodes';
 
 export class Printer {
   private texts: string[] = [];

@@ -35,7 +35,7 @@ function main(args: string[]): number {
   for (const file of sourceFiles) {
     Logger.info(`Found ${file}`, 2);
   }
-  const fileName = 'samples\\moduleA\\SubModuleD\\Span.hbt';
+  const fileName = 'samples\\moduleA\\SubModuleD\\Text.hbt';
   const stream = openFileStream(fileName);
   const ast = parseStream(stream);
   const source = stream.getText(0, stream.size);

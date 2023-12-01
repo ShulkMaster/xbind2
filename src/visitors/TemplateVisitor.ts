@@ -2,9 +2,11 @@ import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
 import { CharDataNode, ChildNode, TagNode, TemplateFollowNode, TemplateResult } from 'types/nodes/template';
 import { symbolToToken } from '../utils/parse';
+import { ExpressionVisitor } from './ExpressionVisitor';
 
 
 export class TemplateVisitor extends BaseVisitor<TemplateResult> {
+  private readonly expVisitor = new ExpressionVisitor();
 
   visitTemplate = (ctx: H.TemplateContext): TagNode[] => {
     if (ctx.getChildCount() < 1) {
@@ -71,7 +73,18 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
       return siblings;
     }
 
-    //todo: implement expression
+    const exp = ctx.expression();
+    if(exp?.getChildCount() > 0) {
+      const expression = this.expVisitor.visitExpression(exp);
+      const next = ctx.templateBody();
+      const siblings = this.visitTemplateBody(next);
+
+      siblings.unshift({
+        type: 'expression',
+        expression,
+      });
+      return siblings;
+    }
 
     return result;
   };

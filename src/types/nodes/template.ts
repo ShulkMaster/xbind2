@@ -1,4 +1,5 @@
 import { Token } from 'types/token';
+import { ExpressionResult } from './expression';
 
 export type AttributeNode = {
   type: 'attribute';
@@ -16,10 +17,13 @@ export type TagNode = {
   openTag: Token;
   closeTag: Token | undefined;
   properties: AttributeNode[];
-  children: (TagNode | CharDataNode)[];
+  children: ChildNode[];
 };
 
-export type ChildNode = TagNode | CharDataNode;
+export type ChildNode = TagNode | CharDataNode | {
+  type: 'expression';
+  expression: ExpressionResult;
+};
 
 export type TemplateNode = {
   type: 'template';
@@ -27,7 +31,7 @@ export type TemplateNode = {
 };
 
 export type TemplateFollowNode = {
-  children: (TagNode | CharDataNode)[];
+  children: ChildNode[];
   closeTag: Token | undefined;
   siblings: TagNode[];
 };
