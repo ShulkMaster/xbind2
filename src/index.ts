@@ -4,7 +4,8 @@ import { LogLevel } from './types/logging';
 import { Arguments } from './types/console';
 import { createVisitor, parseStream } from './visitors';
 import { ReactPlugin, VuePlugin } from './plugins';
-import { Compiler, SymbolTable } from './compiler';
+import { Crossbind } from './compiler';
+import { GlobalTable } from './scope';
 
 export function toArgs(args: string[]): Arguments {
   const scripArgs = args.slice(2);
@@ -38,10 +39,10 @@ function main(args: string[]): number {
   const stream = openFileStream(fileName);
   const ast = parseStream(stream);
   const source = stream.getText(0, stream.size);
-  const sb = new SymbolTable();
-  const compiler = new Compiler(sb);
+  const compiler = new Crossbind();
   const reactPlugin = new ReactPlugin();
   const vuePlugin = new VuePlugin();
+  GlobalTable.init();
 
   try {
     const visitor = createVisitor();
@@ -49,9 +50,10 @@ function main(args: string[]): number {
 
     result.sourceFile = fileName;
     result.sourceCode = source;
-    sb.registerProgram(result);
-    const success = compiler.check(result);
-    if (!success) {
+    //sb.registerProgram(result);
+    compiler.check(result);
+    if (compiler.errors.length > 0) {
+      Logger.compileErrors(compiler.errors);
       return ReturnCode.ERROR;
     }
 

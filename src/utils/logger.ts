@@ -1,4 +1,4 @@
-import { Loggable, LogLevel, LogSink } from 'types/logging';
+import { CompileError, Loggable, LogLevel, LogSink } from 'types/logging';
 
 export class Logger {
   private static level: LogLevel = LogLevel.ERROR;
@@ -67,5 +67,13 @@ export class Logger {
 
   public static error(message: Loggable, padding?: number): void {
     this.log(LogLevel.ERROR, message, padding);
+  }
+
+  public static compileErrors(erros: CompileError[]): void {
+    for (const error of erros) {
+      const { message, file, line, column, text } = error;
+      this.error(`${file}(${line}, ${column}): ${message}`);
+      this.error('> ' + text, 2);
+    }
   }
 }
