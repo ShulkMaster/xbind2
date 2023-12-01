@@ -1,0 +1,10 @@
+component Text {
+  prop text: number = "Hello World";
+
+  render (
+    <div>
+      <p>This is a component that displays text from props</p>
+      <span>{text}</span>
+    </div>
+  );
+}
