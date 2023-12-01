@@ -1,8 +1,7 @@
 import * as N from 'types/nodes';
-import { Logger, makeDirs, Printer } from 'utils';
+import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
 import { TypeDeclarationNode } from 'types/nodes';
-import { Writer } from '../../utils/Writter';
 
 export class VuePlugin {
   public readonly outDir = 'outdir\\vue\\';

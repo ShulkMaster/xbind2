@@ -4,6 +4,7 @@ import * as N from 'types/nodes';
 import { ExpressionKind } from 'types/nodes';
 import { symbolToToken } from '../utils/parse';
 import { TypeVisitor } from './TypeVisitor';
+import { ReturnType } from 'types/nodes/native';
 
 export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
   private typeVisitor = new TypeVisitor();
@@ -370,11 +371,47 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
   };
 
   visitConstantExpression = (ctx: H.ConstantExpressionContext): N.ConstantExpressionNode => {
-    const value = ctx.NumberValue() || ctx.StringLiteral() || ctx.BoolValue() || ctx.Undefined() || ctx.HEX_COLOR();
+    const numberValue = ctx.NumberValue();
+    if (numberValue) {
+      return {
+        kind: ExpressionKind.constantExpression,
+        token: symbolToToken(numberValue.symbol),
+        primitiveType: ReturnType.Number,
+      };
+    }
 
+    const stringLiteral = ctx.StringLiteral();
+    if (stringLiteral) {
+      return {
+        kind: ExpressionKind.constantExpression,
+        token: symbolToToken(stringLiteral.symbol),
+        primitiveType: ReturnType.String,
+      };
+    }
+
+    const booleanValue = ctx.BoolValue();
+    if (booleanValue) {
+      return {
+        kind: ExpressionKind.constantExpression,
+        token: symbolToToken(booleanValue.symbol),
+        primitiveType: ReturnType.Boolean,
+      };
+    }
+
+    const colorValue = ctx.HEX_COLOR();
+    if (colorValue) {
+      return {
+        kind: ExpressionKind.constantExpression,
+        token: symbolToToken(colorValue.symbol),
+        primitiveType: ReturnType.Color,
+      };
+    }
+
+    const value = ctx.Undefined();
     return {
       kind: ExpressionKind.constantExpression,
-      value: symbolToToken(value.symbol),
+      token: symbolToToken(value.symbol),
+      primitiveType: ReturnType.Undefined,
     };
   };
 }

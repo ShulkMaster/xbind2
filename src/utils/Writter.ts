@@ -1,4 +1,5 @@
 import * as E from 'types/nodes';
+import { ReturnType } from 'types/nodes/native';
 
 export class Writer {
 
@@ -31,10 +32,20 @@ export class Writer {
   }
 
   public static writeConstantExpression(exp: E.ConstantExpressionNode): string {
-    if (exp.value.text.startsWith('#')) {
-      return `'${exp.value.text}'`;
+    if (exp.primitiveType === ReturnType.Color) {
+      return `'${exp.token.text}'`;
     }
-    return exp.value.text;
+
+    if(exp.primitiveType === ReturnType.String) {
+      const normalized = exp.token.text.slice(1, -1);
+      if(normalized.includes("'")) {
+        return `"${normalized}"`;
+      }
+
+      return `'${normalized}'`;
+    }
+
+    return exp.token.text;
   }
 
   public static writePrimaryExpression(exp: E.PrimaryExpressionNode): string {

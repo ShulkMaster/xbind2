@@ -1,5 +1,6 @@
 import { Token } from 'types/token';
 import { TypeNode } from './types';
+import { ReturnType } from './native';
 
 export type ExpressionNode = AssignmentExpressionNode;
 
@@ -116,7 +117,8 @@ export type PrimaryExpressionNode = {
 
 export type ConstantExpressionNode = {
   kind: ExpressionKind.constantExpression;
-  value: Token;
+  token: Token;
+  primitiveType: ReturnType;
 };
 
 export type ExpressionResult =

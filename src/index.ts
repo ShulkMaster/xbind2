@@ -1,10 +1,9 @@
-import { findFiles, openFileStream } from './utils/files';
+import { findFiles, openFileStream } from './utils';
 import { Logger } from './utils';
 import { LogLevel } from './types/logging';
 import { Arguments } from './types/console';
 import { createVisitor, parseStream } from './visitors';
-import { ReactPlugin } from './plugins/react';
-import { VuePlugin } from './plugins/vue';
+import { ReactPlugin, VuePlugin } from './plugins';
 import { Compiler, SymbolTable } from './compiler';
 
 export function toArgs(args: string[]): Arguments {
@@ -35,13 +34,13 @@ function main(args: string[]): number {
   for (const file of sourceFiles) {
     Logger.info(`Found ${file}`, 2);
   }
-  const fileName = 'samples\\moduleA\\SubModuleD\\Text.hbt';
+  const fileName = 'samples\\Text.hbt';
   const stream = openFileStream(fileName);
   const ast = parseStream(stream);
   const source = stream.getText(0, stream.size);
   const sb = new SymbolTable();
   const compiler = new Compiler(sb);
-  const plugin = new VuePlugin();
+  const plugin = new ReactPlugin();
 
   try {
     const visitor = createVisitor();
