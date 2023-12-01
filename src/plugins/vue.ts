@@ -60,7 +60,21 @@ export class VuePlugin {
     printer.appendLine('<script setup lang="ts">');
     printer.appendLine(`import { ${imports.join(', ')} } from './types';`, 2);
     if (propsTypeName) {
-      printer.appendLine(`defineProps<${propsTypeName}>();`, 2);
+      const definition = `defineProps<${propsTypeName}>()`;
+      const hasDefaultProps = component.properties.some(p => p.initializer);
+      if (hasDefaultProps) {
+        printer.appendLine(`const props = withDefaults(${definition}, {`, 2);
+        for (const prop of component.properties) {
+          if (prop.initializer) {
+            const propName = prop.name.text;
+            const propValue = Writer.writeExpression(prop.initializer);
+            printer.appendLine(`${propName}: ${propValue},`, 4);
+          }
+        }
+        printer.appendLine('});', 2);
+      } else {
+        printer.appendLine(definition + ';', 2);
+      }
     } else {
       printer.appendLine('defineProps<{}>();', 2);
     }
@@ -89,9 +103,9 @@ export class VuePlugin {
         case 'charData':
           printer.appendLine(child.contents.join(' '), indent);
           break;
-          case 'expression':
-            printer.appendLine(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
-            break;
+        case 'expression':
+          printer.appendLine(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
+          break;
       }
     }
   }

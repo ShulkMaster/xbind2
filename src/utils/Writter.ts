@@ -1,5 +1,6 @@
 import * as E from 'types/nodes';
 import { ReturnType } from 'types/nodes/native';
+import { Logger } from './logger';
 
 export class Writer {
 
@@ -60,7 +61,8 @@ export class Writer {
       return identifier.text;
     }
 
-    throw new Error('Primary expression cannot reach const expression');
+    Logger.error(exp);
+    throw new Error('unknown primary expression');
   }
 
   public static postfixExpression(exp: E.PostfixExpressionNode): string {

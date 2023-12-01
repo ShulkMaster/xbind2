@@ -107,7 +107,6 @@ export type PostfixExpressionNode = {
 export type PrimaryExpressionNode = {
   kind: ExpressionKind.PrimaryExpression;
   identifier: Token | undefined;
-  constantExpression: ConstantExpressionNode | undefined;
   groupExpression: {
     open: Token;
     expression: ExpressionResult;

@@ -35,9 +35,10 @@ export class Printer {
     for (const member of members) {
       const propName = member.name.text;
       const annotation = member.type;
+      const optional = member.optional ? '?' : '';
       if (annotation.primitive) {
         const primitiveType = annotation.name;
-        this.appendLine(`${propName}: ${primitiveType};`, pad + 2);
+        this.appendLine(`${propName}${optional}: ${primitiveType};`, pad + 2);
         continue;
       }
       const memberTypeName = annotation.typeName.text;

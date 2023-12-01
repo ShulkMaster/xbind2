@@ -40,7 +40,8 @@ function main(args: string[]): number {
   const source = stream.getText(0, stream.size);
   const sb = new SymbolTable();
   const compiler = new Compiler(sb);
-  const plugin = new ReactPlugin();
+  const reactPlugin = new ReactPlugin();
+  const vuePlugin = new VuePlugin();
 
   try {
     const visitor = createVisitor();
@@ -54,7 +55,8 @@ function main(args: string[]): number {
       return ReturnCode.ERROR;
     }
 
-    plugin.writeProgram(result);
+    reactPlugin.writeProgram(result);
+    vuePlugin.writeProgram(result);
   } catch (e: unknown) {
     Logger.error((e as Error).message);
     console.log(e);

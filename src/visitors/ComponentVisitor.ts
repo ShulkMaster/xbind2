@@ -52,7 +52,7 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
       name: symbolToToken(name),
       colon: symbolToToken(colon),
       initializer,
-      optional: false,
+      optional: Boolean(initializer),
       typeAnnotation,
       semicolon: symbolToToken(semi),
     });

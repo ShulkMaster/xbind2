@@ -338,30 +338,22 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
 
   visitPrimaryExpression = (ctx: H.PrimaryExpressionContext): N.ExpressionResult => {
     const identifier = ctx.Identifier();
-    const constantExpression = ctx.constantExpression();
-
     if (identifier) {
       return {
         kind: ExpressionKind.PrimaryExpression,
         identifier: symbolToToken(identifier.symbol),
-        constantExpression: undefined,
         groupExpression: undefined,
       };
     }
 
+    const constantExpression = ctx.constantExpression();
     if (constantExpression) {
-      return {
-        kind: ExpressionKind.PrimaryExpression,
-        identifier: undefined,
-        constantExpression: this.visitConstantExpression(constantExpression),
-        groupExpression: undefined,
-      };
+      return this.visitConstantExpression(constantExpression);
     }
 
     return {
       kind: ExpressionKind.PrimaryExpression,
       identifier: undefined,
-      constantExpression: undefined,
       groupExpression: {
         open: symbolToToken(ctx.OParen().symbol),
         expression: this.visitExpression(ctx.expression()),
