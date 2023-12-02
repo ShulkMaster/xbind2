@@ -1,7 +1,7 @@
 import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { TypeDeclarationNode } from 'types/nodes';
+import { DirectiveType, TypeDeclarationNode } from 'types/nodes';
 
 export class VuePlugin {
   public readonly outDir = 'outdir\\vue\\';
@@ -93,9 +93,13 @@ export class VuePlugin {
       switch (child.type) {
         case 'tag':
           if(child.children.length < 1) {
-            printer.appendLine(`<${child.openTag.text} />`, indent);
+            printer.append(`<${child.openTag.text}`, indent);
+            printer.appendLine('/>', 0);
+            this.writeAttributes(child.properties, printer);
           } else {
-            printer.appendLine(`<${child.openTag.text}>`, indent);
+            printer.append(`<${child.openTag.text}`, indent);
+            this.writeAttributes(child.properties, printer);
+            printer.appendLine('>', 0);
             this.writeTemplateNodes(child.children, printer, indent + 2);
             printer.appendLine(`</${child.openTag.text}>`, indent);
           }
@@ -107,6 +111,36 @@ export class VuePlugin {
           printer.appendLine(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
           break;
       }
+    }
+  }
+
+  private writeAttributes(attributes: N.TagPropertyNode[], printer: Printer): void {
+    for (const attribute of attributes) {
+      switch (attribute.type) {
+        case 'attribute':
+          Logger.warn('Attribute not implemented');
+          break;
+        case 'directive':
+          this.writeDirective(attribute, printer);
+          break;
+      }
+    }
+  }
+
+  private writeDirective(directive: N.DirectiveNode, printer: Printer): void {
+    const valueStr = Writer.writeExpression(directive.value);
+    switch (directive.kind) {
+      case DirectiveType.if:
+        printer.append(` v-if="${valueStr}"`);
+        break;
+      case DirectiveType.else:
+        break;
+      case DirectiveType.switch:
+        break;
+      case DirectiveType.case:
+        break;
+      case DirectiveType.template:
+        break;
     }
   }
 
