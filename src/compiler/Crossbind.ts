@@ -4,6 +4,7 @@ import { ProgramNode } from 'types/nodes';
 import { ExpressionCheck } from './ExpressionCheck';
 import { TypeRefSymbol } from 'types/symbol';
 import { ReturnType } from 'types/nodes/native';
+import { TemplateChecker } from './TemplateChecker';
 
 export class Crossbind {
   private readonly scopeStack: string[] = [];
@@ -25,9 +26,11 @@ export class Crossbind {
   }
 
   private checkComponent(comp: N.ComponentNode, p: ProgramNode): void {
-    const {name, properties, template, propsTypeName} = comp;
+    const {name, properties, template} = comp;
     this.scopeStack.push(name.text);
     this.checkProperties(properties, p);
+    const templateChecker = new TemplateChecker(this.errors, p);
+    templateChecker.checkTemplate(template);
     this.scopeStack.pop();
   }
 
