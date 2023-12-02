@@ -1,8 +1,8 @@
 component Text {
-  prop text: number = "Hello World";
+  prop text: string = "Hello World";
 
   render (
-    <div>
+    <div if={text}>
       <p>This is a component that displays text from props</p>
       <span>{text}</span>
     </div>

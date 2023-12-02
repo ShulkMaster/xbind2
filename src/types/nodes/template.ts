@@ -1,11 +1,28 @@
 import { Token } from 'types/token';
 import { ExpressionResult } from './expression';
 
+export enum DirectiveType {
+  if = 'if',
+  else = 'else',
+  switch = 'switch',
+  case = 'case',
+  template = 'template',
+}
+
 export type AttributeNode = {
   type: 'attribute';
   name: Token;
-  value: Token;
+  value: ExpressionResult | undefined;
 };
+
+export type DirectiveNode = {
+  type: 'directive';
+  name: Token;
+  kind: DirectiveType;
+  value: ExpressionResult;
+};
+
+export type TagPropertyNode = AttributeNode | DirectiveNode;
 
 export type CharDataNode = {
   type: 'charData';
@@ -16,7 +33,7 @@ export type TagNode = {
   type: 'tag';
   openTag: Token;
   closeTag: Token | undefined;
-  properties: AttributeNode[];
+  properties: TagPropertyNode[];
   children: ChildNode[];
 };
 

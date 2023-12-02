@@ -50,6 +50,7 @@ function main(args: string[]): number {
 
     result.sourceFile = fileName;
     result.sourceCode = source;
+    Logger.info(result);
     //sb.registerProgram(result);
     compiler.check(result);
     if (compiler.errors.length > 0) {

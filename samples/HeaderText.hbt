@@ -1,0 +1,15 @@
+component HeaderText {
+  prop title: string;
+  prop level: number;
+
+  render(
+    <fragment switch={level}>
+      <h1 case={1}>H1 {title}</h1>
+      <h2 case={2}>H2 {title}</h2>
+      <h3 case={3}>H3 {title}</h3>
+      <h4 case={4}>H4 {title}</h4>
+      <h5 case={5}>H5 {title}</h5>
+    </fragment>
+  );
+
+}

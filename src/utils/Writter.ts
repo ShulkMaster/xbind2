@@ -76,6 +76,7 @@ export class Writer {
     }
 
     if (call) {
+      // todo support arguments
       //const args = call.arguments.map(arg => this.writeExpression(arg));
       return `${primaryExpression}()${followExpression}`;
     }

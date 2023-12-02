@@ -88,8 +88,17 @@ templateFollow: (GreaterThan templateBody CloseTag Identifier GreaterThan templa
 attributes: attribute attributes | ;
 attribute:
   OBrace Identifier CBrace
-  | Identifier Assign OBrace expression CBrace
-  | Identifier Assign StringLiteral;
+  | directive
+  | attributeBind
+  ;
+
+directive: directiveName Assign attributeValue;
+attributeBind: Identifier attributeBindFollow;
+
+attributeBindFollow: Assign attributeValue | ;
+
+directiveName: If | Else | Switch | Case | Template;
+attributeValue: StringLiteral | OBrace expression CBrace;
 
 templateBody:
   template

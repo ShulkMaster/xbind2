@@ -1,9 +1,9 @@
 import * as N from 'types/nodes';
-import { CompileError } from '../types/logging';
+import { CompileError } from 'types/logging';
 import { ProgramNode } from 'types/nodes';
 import { ExpressionCheck } from './ExpressionCheck';
-import { TypeRefSymbol } from '../types/symbol';
-import { ReturnType } from '../types/nodes/native';
+import { TypeRefSymbol } from 'types/symbol';
+import { ReturnType } from 'types/nodes/native';
 
 export class Crossbind {
   private readonly scopeStack: string[] = [];

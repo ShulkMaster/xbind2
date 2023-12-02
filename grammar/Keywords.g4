@@ -3,6 +3,7 @@ lexer grammar Keywords;
 Use: 'use';
 Component: 'component';
 Style: 'style';
+Template: 'template';
 As: 'as';
 
 // staments
@@ -10,6 +11,8 @@ If: 'if';
 Else: 'else';
 While: 'while';
 Return: 'return';
+Switch: 'switch';
+Case: 'case';
 
 // variables
 Val: 'val';

@@ -3,10 +3,12 @@ import * as H from 'parser/Haibt';
 import { CharDataNode, ChildNode, TagNode, TemplateFollowNode, TemplateResult } from 'types/nodes/template';
 import { symbolToToken } from '../utils/parse';
 import { ExpressionVisitor } from './ExpressionVisitor';
+import { AttributeVisitor } from './AttributeVisitor';
 
 
 export class TemplateVisitor extends BaseVisitor<TemplateResult> {
   private readonly expVisitor = new ExpressionVisitor();
+  private readonly attributeVisitor = new AttributeVisitor();
 
   visitTemplate = (ctx: H.TemplateContext): TagNode[] => {
     if (ctx.getChildCount() < 1) {
@@ -16,12 +18,14 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
     const identifier = ctx.Identifier().symbol;
     const follow = ctx.templateFollow();
     const { siblings, children, closeTag} = this.visitTemplateFollow(follow);
+    const attributes = ctx.attributes();
+    const properties = attributes?.getChildCount() ? this.attributeVisitor.visitAttributes(attributes) : [];
 
     const currentTag: TagNode = {
       type: 'tag',
       openTag: symbolToToken(identifier),
       closeTag,
-      properties: [],
+      properties,
       children,
     };
 
