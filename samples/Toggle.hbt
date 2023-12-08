@@ -1,0 +1,10 @@
+component Toggle {
+  prop isOn: boolean = false;
+
+  render (
+    <div>
+      <p if={isOn} else="temporalX">This is toggle ON state</p>
+      <p template="temporalX">Now its off</p>
+    </div>
+  );
+}

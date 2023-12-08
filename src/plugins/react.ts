@@ -1,9 +1,12 @@
 import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
+import { TemplateSymbols } from '../scope/TemplateSymbols';
+import { ConstantExpressionNode } from 'types/nodes';
 
 export class ReactPlugin {
   public readonly outDir = 'outdir\\react\\';
+  private t: TemplateSymbols = {} as TemplateSymbols;
   public constructor() {
     Logger.info('React plugin loaded');
   }
@@ -29,6 +32,8 @@ export class ReactPlugin {
 
   private writeComponent(component: N.ComponentNode, printer: Printer): void {
     const { name, propsTypeName } = component;
+    this.t = new TemplateSymbols(component.template);
+    this.t.fill();
 
     if (propsTypeName) {
       printer.appendLine(`export function ${name.text}(props: ${propsTypeName}) {`);
@@ -76,13 +81,7 @@ export class ReactPlugin {
     for (const child of template) {
       switch (child.type) {
         case 'tag':
-          if(child.children.length < 1) {
-            printer.appendLine(`<${child.openTag.text} />`, indent);
-          } else {
-            printer.appendLine(`<${child.openTag.text}>`, indent);
-            this.writeTemplate(child.children, printer, indent + 2);
-            printer.appendLine(`</${child.openTag.text}>`, indent);
-          }
+          this.writeTag(child, printer, indent);
           break;
         case 'charData':
           printer.appendLine(child.contents.join(' '), indent);
@@ -90,6 +89,103 @@ export class ReactPlugin {
         case 'expression':
           printer.appendLine(`{${Writer.writeExpression(child.expression)}}`, indent);
           break;
+      }
+    }
+  }
+
+  private writeTag(tag: N.TagNode, printer: Printer, indent: number): void {
+    const attribs = tag.properties.filter(p => p.type === 'attribute') as N.AttributeNode[];
+    const directives = tag.properties.filter(p => p.type === 'directive') as N.DirectiveNode[];
+
+    const ifDirective = directives.find(d => d.kind === 'if');
+    const elseDirective = directives.find(d => d.kind === 'else');
+    const templateDirective = directives.find(d => d.kind === 'template');
+
+    if(templateDirective) {
+      const exp = templateDirective.value as ConstantExpressionNode;
+      this.writeElseTemplate(exp.token.text, tag, printer, indent);
+      return;
+    }
+
+    if(elseDirective && ifDirective) {
+      const exp = elseDirective.value as ConstantExpressionNode;
+      this.writeIfPair(exp.token.text, tag, printer, indent);
+      return;
+    }
+
+    if (ifDirective) {
+      printer.append(`{${Writer.writeExpression(ifDirective.value)} && `, indent);
+      if(tag.children.length < 1) {
+        printer.append(`<${tag.openTag.text} />`);
+      } else {
+        printer.appendLine('(');
+        printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+        this.writeTemplate(tag.children, printer, indent + 4);
+        printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+        printer.appendLine(')}', indent);
+      }
+
+      return;
+    }
+
+    if(tag.children.length < 1) {
+      printer.append(`<${tag.openTag.text} />`);
+    } else {
+      printer.appendLine(`<${tag.openTag.text}>`, indent);
+      this.writeTemplate(tag.children, printer, indent + 2);
+      printer.appendLine(`</${tag.openTag.text}>`, indent);
+    }
+  }
+
+  private writeIfPair(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {
+    const pair = this.t.ifElsePairs.get(templateName);
+    if (!pair) {
+      throw new Error(`Template pair ${templateName} not found`);
+    }
+
+    if(pair.areContiguous) {
+      printer.append(`{${pair.identifierExpResult} ? `, indent);
+      if(tag.children.length < 1) {
+        printer.appendLine(`<${tag.openTag.text} />`, indent + 2);
+        printer.appendLine(' : ', indent + 2);
+      } else {
+        printer.appendLine('(');
+        printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+        this.writeTemplate(tag.children, printer, indent + 4);
+        printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+        printer.appendLine(') :', indent);
+      }
+      return;
+    }
+
+    printer.append(`{${pair.identifierExpResult} && `, indent);
+    if(tag.children.length < 1) {
+      printer.append(`<${tag.openTag.text} />`);
+    } else {
+      printer.appendLine('(');
+      printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+      this.writeTemplate(tag.children, printer, indent + 4);
+      printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+      printer.appendLine(') :', indent);
+    }
+  }
+
+  private writeElseTemplate(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {
+    const pair = this.t.ifElsePairs.get(templateName);
+    if (!pair) {
+      throw new Error(`Template pair ${templateName} not found`);
+    }
+
+    if(pair.areContiguous) {
+      if(tag.children.length < 1) {
+        printer.appendLine(`<${tag.openTag.text} />`);
+        printer.appendLine('}', indent);
+      } else {
+        printer.appendLine('(', indent);
+        printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+        this.writeTemplate(tag.children, printer, indent + 4);
+        printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+        printer.appendLine(')}', indent);
       }
     }
   }
