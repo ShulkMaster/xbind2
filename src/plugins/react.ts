@@ -56,10 +56,14 @@ export class ReactPlugin {
     }
 
     if (propsWithoutDefault.length > 0) {
-      printer.appendLine(`const { ${propsWithoutDefault.map(p => p.name.text).join(', ')} } = props;`);
+      printer.appendLine(`const { ${propsWithoutDefault.map(p => p.name.text).join(', ')} } = props;`, 2);
     }
 
-    // todo: before render template render ifElsePair expressions
+    for (const pair of this.t.ifElsePairs.values()) {
+      if(pair.areContiguous) continue;
+      printer.appendLine(`const ${pair.identifierExpResult} = ${Writer.writeExpression(pair.expression)};`, 2);
+    }
+    printer.crlf();
 
     if(template.children.length <= 0) {
       printer.appendLine('return null;');
@@ -146,7 +150,8 @@ export class ReactPlugin {
     }
 
     if(pair.areContiguous) {
-      printer.append(`{${pair.identifierExpResult} ? `, indent);
+      const expression = Writer.writeExpression(pair.expression);
+      printer.append(`{${expression} ? `, indent);
       if(tag.children.length < 1) {
         printer.appendLine(`<${tag.openTag.text} />`, indent + 2);
         printer.appendLine(' : ', indent + 2);
@@ -189,6 +194,7 @@ export class ReactPlugin {
         printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
         printer.appendLine(')}', indent);
       }
+      return;
     }
 
     printer.append(`{!${pair.identifierExpResult} && `, indent);

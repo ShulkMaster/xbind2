@@ -21,14 +21,19 @@ export class Writer {
       case E.ExpressionKind.AdditiveExpression:
         return this.additiveExpression(expression);
       case E.ExpressionKind.RelationalExpression:
+        return this.relationalExpression(expression);
       case E.ExpressionKind.EqualityExpression:
+        return this.equalityExpression(expression);
       case E.ExpressionKind.LogicalAndExpression:
+        return this.logicalAndExpression(expression);
       case E.ExpressionKind.LogicalOrExpression:
+        return this.logicalOrExpression(expression);
       case E.ExpressionKind.TernaryExpression:
+        return this.ternaryExpression(expression);
       case E.ExpressionKind.ConditionalExpression:
       case E.ExpressionKind.AssignmentExpression:
       default:
-        throw new Error('Invalid expression');
+        throw new Error('Unsupported expression');
     }
   }
 
@@ -120,5 +125,44 @@ export class Writer {
     const rightExpression = this.writeExpression(right);
     const operatorText = operator.text;
     return `${leftExpression} ${operatorText} ${rightExpression}`;
+  }
+
+  public static relationalExpression(exp: E.RelationalExpressionNode): string {
+    const { left, operator, right } = exp;
+    const leftExpression = this.writeExpression(left);
+    const rightExpression = this.writeExpression(right);
+    const operatorText = operator.text;
+    return `${leftExpression} ${operatorText} ${rightExpression}`;
+  }
+
+  public static equalityExpression(exp: E.EqualityExpressionNode): string {
+    const { left, operator, right } = exp;
+    const leftExpression = this.writeExpression(left);
+    const rightExpression = this.writeExpression(right);
+    const operatorText = operator.text;
+    return `${leftExpression} ${operatorText} ${rightExpression}`;
+  }
+
+  public static logicalAndExpression(exp: E.LogicalAndExpressionNode): string {
+    const { left, right } = exp;
+    const leftExpression = this.writeExpression(left);
+    const rightExpression = this.writeExpression(right);
+    return `${leftExpression} && ${rightExpression}`;
+  }
+
+  public static logicalOrExpression(exp: E.LogicalOrExpressionNode): string {
+    const { left, right } = exp;
+    const leftExpression = this.writeExpression(left);
+    const rightExpression = this.writeExpression(right);
+    return `${leftExpression} || ${rightExpression}`;
+  }
+
+  public static ternaryExpression(exp: E.TernaryExpressionNode): string {
+    const { trueBranch, falseBranch } = exp;
+    // const conditionExpression = this.writeExpression(condition);
+    const trueExp = this.writeExpression(trueBranch);
+    const falseExp = this.writeExpression(falseBranch);
+    // return `${conditionExpression} ? ${trueExp} : ${falseExp}`;
+    throw new Error('Unsupported expression');
   }
 }
