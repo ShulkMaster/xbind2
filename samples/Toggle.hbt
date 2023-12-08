@@ -4,7 +4,11 @@ component Toggle {
   render (
     <div>
       <p if={isOn} else="temporalX">This is toggle ON state</p>
-      <p template="temporalX">Now its off</p>
+      <p>this is a middle p</p>
+      <p template="temporalX">
+        Now its off
+        <span>and this is a span</span>
+      </p>
     </div>
   );
 }

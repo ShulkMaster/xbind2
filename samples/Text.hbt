@@ -2,9 +2,9 @@ component Text {
   prop text: string = "Hello World";
 
   render (
-    <div if={text}>
+    <div>
       <p>This is a component that displays text from props</p>
-      <span>{text}</span>
+      <span>{ text }</span>
     </div>
   );
 }

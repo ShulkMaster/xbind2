@@ -166,7 +166,7 @@ export class ReactPlugin {
       printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
       this.writeTemplate(tag.children, printer, indent + 4);
       printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
-      printer.appendLine(') :', indent);
+      printer.appendLine(')}', indent);
     }
   }
 
@@ -187,6 +187,17 @@ export class ReactPlugin {
         printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
         printer.appendLine(')}', indent);
       }
+    }
+
+    printer.append(`{!${pair.identifierExpResult} && `, indent);
+    if(tag.children.length < 1) {
+      printer.appendLine(`<${tag.openTag.text} /> }`);
+    } else {
+      printer.appendLine('(');
+      printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+      this.writeTemplate(tag.children, printer, indent + 4);
+      printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+      printer.appendLine(')}', indent);
     }
   }
 }

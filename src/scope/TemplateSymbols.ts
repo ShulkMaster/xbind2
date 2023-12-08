@@ -1,4 +1,12 @@
-import { ChildNode, ConstantExpressionNode, DirectiveNode, ExpressionResult, TagNode, TemplateNode } from 'types/nodes';
+import {
+  ChildNode,
+  ConstantExpressionNode,
+  DirectiveNode,
+  ExpressionKind,
+  ExpressionResult,
+  TagNode,
+  TemplateNode,
+} from 'types/nodes';
 import { getStringText } from 'utils/text';
 
 type IfElsePair = {
@@ -41,7 +49,15 @@ export class TemplateSymbols {
       const elseExp = elseDirective.value as ConstantExpressionNode;
       const contiguous = this.isTemplateContiguous(tag, elseExp.token.text);
 
-      const identifierExpResult = `${getStringText(elseExp.token.text)}ExpValue`;
+      let identifierExpResult = `${getStringText(elseExp.token.text)}ExpValue`;
+      if (expression.kind === ExpressionKind.constantExpression) {
+        identifierExpResult = expression.token.text;
+      }
+
+      if (expression.kind === ExpressionKind.PrimaryExpression && expression.identifier) {
+        identifierExpResult = expression.identifier.text;
+      }
+
       ifElsePairs.set(elseExp.token.text, {
         expression: expression,
         areContiguous: contiguous,
