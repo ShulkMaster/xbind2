@@ -1,10 +1,12 @@
 import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { DirectiveType, TypeDeclarationNode } from 'types/nodes';
+import { ConstantExpressionNode, DirectiveType, TypeDeclarationNode } from 'types/nodes';
+import { TemplateSymbols } from '../scope/TemplateSymbols';
 
 export class VuePlugin {
   public readonly outDir = 'outdir\\vue\\';
+  private t: TemplateSymbols = {} as TemplateSymbols;
 
   public constructor() {
     Logger.info('Vue plugin loaded');
@@ -45,6 +47,8 @@ export class VuePlugin {
     const imports = this.typesToImport(program.types);
     const baseDir = this.outDir + program.namespace.join(path.sep);
     makeDirs(baseDir);
+    this.t = new TemplateSymbols(component.template);
+    this.t.fill();
 
     this.writeScript(component, imports, printer);
     printer.crlf();
@@ -140,8 +144,22 @@ export class VuePlugin {
       case DirectiveType.case:
         break;
       case DirectiveType.template:
+        this.writeTemplateDirective(directive, printer);
         break;
     }
+  }
+
+  private writeTemplateDirective(directive: N.DirectiveNode, printer: Printer): void {
+    const templateName = directive.value as ConstantExpressionNode;
+    const ifPair = this.t.ifElsePairs.get(templateName.token.text)!;
+
+    if (ifPair.areContiguous) {
+      printer.append(' v-else');
+      return;
+    }
+
+    const valueStr = ifPair.identifierExpResult;
+    printer.append(` v-if="!${valueStr}"`);
   }
 
   private formatName(name: string): string {

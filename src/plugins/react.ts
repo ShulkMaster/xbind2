@@ -59,6 +59,8 @@ export class ReactPlugin {
       printer.appendLine(`const { ${propsWithoutDefault.map(p => p.name.text).join(', ')} } = props;`);
     }
 
+    // todo: before render template render ifElsePair expressions
+
     if(template.children.length <= 0) {
       printer.appendLine('return null;');
       return;
