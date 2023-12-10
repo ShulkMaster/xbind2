@@ -19,6 +19,11 @@ Val: 'val';
 Var: 'var';
 Prop: 'prop';
 
+// css
+Em: 'em';
+Rem: 'rem';
+Px: 'px';
+
 // types
 Function: 'fun';
 Type: 'type';

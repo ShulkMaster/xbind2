@@ -2,7 +2,7 @@ import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
 import * as N from 'types/nodes';
 import { ExpressionKind } from 'types/nodes';
-import { symbolToToken } from '../utils/parse';
+import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
 import { ReturnType } from 'types/nodes/native';
 
