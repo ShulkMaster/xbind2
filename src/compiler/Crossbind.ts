@@ -5,10 +5,16 @@ import { ExpressionCheck } from './ExpressionCheck';
 import { TypeRefSymbol } from 'types/symbol';
 import { ReturnType } from 'types/nodes/native';
 import { TemplateChecker } from './TemplateChecker';
+import { Resolver } from 'scope/Resolver';
 
 export class Crossbind {
   private readonly scopeStack: string[] = [];
   public readonly errors: CompileError[] = [];
+  private res: Resolver;
+
+  constructor(res: Resolver) {
+    this.res = res;
+  }
 
   public check(program: N.ProgramNode): void {
     const {namespace, uses, components, types} = program;

@@ -3,6 +3,7 @@ import path from 'path';
 import { Logger } from './logger';
 import { CharStream, CharStreams } from 'antlr4';
 import { ExitCodes } from 'types/console';
+import { UsePath } from 'types/nodes';
 
 export const HaibtExtension = '.hbt';
 
@@ -52,4 +53,10 @@ export function findFiles(dir: string): string[] {
 
 export function openFileStream(filePath: string): CharStream {
   return CharStreams.fromPathSync(filePath, 'utf8');
+}
+
+export function filePathToScope(filePath: string): UsePath {
+  const dir = filePath.substring(0, filePath.length - HaibtExtension.length);
+  const parts = dir.split(path.sep);
+  return parts.filter(part => part !== '.' && part !== '..');
 }

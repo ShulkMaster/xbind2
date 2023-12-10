@@ -23,7 +23,7 @@ stlyeModifier: Dot | GreaterThan;
 
 styleRules: styleRule styleRules | ;
 
-styleRule: Identifier Colon styleRuleFollow SemiColon | style;
+styleRule: (Identifier | Color) Colon styleRuleFollow SemiColon | style;
 
 styleRuleFollow: (HEX_COLOR | measure | Identifier) styleRuleFollow |;
 

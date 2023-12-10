@@ -8,6 +8,7 @@ export * from './template';
 export * from './types';
 export * from './expression';
 export * from './styles';
+export * from './uses';
 
 export type ProgramNode = {
   sourceFile: string;
@@ -20,3 +21,5 @@ export type ProgramNode = {
 };
 
 export type ProgramResult = ProgramNode | void;
+
+export type OrArray<T> = T | T[];

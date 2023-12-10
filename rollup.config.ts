@@ -18,7 +18,7 @@ const config: RollupOptions = {
     commonjs(),
     typescript({ tsconfig: './tsconfig.json' }),
   ],
-  external: ['commander'],
+  external: ['commander', 'antlr4'],
 };
 
 export default config;
