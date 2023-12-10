@@ -1,5 +1,6 @@
 import { Token as AntlrToken } from 'antlr4';
 import { Token } from 'types/token';
+import { LogLevel } from 'types/logging';
 
 export function symbolToToken(symbol: AntlrToken): Token {
   return {
@@ -12,4 +13,19 @@ export function symbolToToken(symbol: AntlrToken): Token {
     tokenIndex: symbol.tokenIndex,
     type: symbol.type,
   };
+}
+
+export function asLogLevel(level: string): LogLevel {
+  switch (level) {
+    case 'error':
+      return LogLevel.ERROR;
+    case 'warn':
+      return LogLevel.WARN;
+    case 'info':
+      return LogLevel.INFO;
+    case 'debug':
+      return LogLevel.DEBUG;
+    default:
+      return LogLevel.ERROR;
+  }
 }

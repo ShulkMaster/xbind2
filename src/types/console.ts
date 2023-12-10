@@ -1,6 +1,9 @@
-import { LogLevel } from './logging';
+export type CompileOptions = {
+  log: string;
+  plugin: string;
+}
 
-export type Arguments = {
-  sources: string;
-  logLevel: string | LogLevel;
+export const enum ExitCodes {
+  Ok = 0,
+  Error = 1,
 }

@@ -4,6 +4,10 @@
   "description": "",
   "type": "module",
   "module": "dist/index.js",
+  "main": "dist/index.js",
+  "bin": {
+    "crossbind": "dist/index.js"
+  },
   "scripts": {
     "generate": "powershell -File gen/setup.ps1",
     "build": "rollup -c rollup.config.ts --configPlugin typescript",
@@ -11,7 +15,7 @@
     "buildAndCompile": "npm run build && npm run compile",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Yury Rivera",
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
@@ -28,6 +32,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "antlr4": "^4.13.1"
+    "antlr4": "^4.13.1",
+    "commander": "^11.1.0"
   }
 }

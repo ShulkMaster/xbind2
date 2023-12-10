@@ -18,6 +18,7 @@ const config: RollupOptions = {
     commonjs(),
     typescript({ tsconfig: './tsconfig.json' }),
   ],
+  external: ['commander'],
 };
 
 export default config;

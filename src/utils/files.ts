@@ -2,13 +2,32 @@ import fs from 'fs';
 import path from 'path';
 import { Logger } from './logger';
 import { CharStream, CharStreams } from 'antlr4';
+import { ExitCodes } from 'types/console';
+
+export const HaibtExtension = '.hbt';
 
 export function makeDirs(filePath: string): void {
   const directory = path.dirname(filePath);
-  fs.mkdirSync(directory, { recursive: true });
+  fs.mkdirSync(directory, {recursive: true});
 }
 
 export function findFiles(dir: string): string[] {
+  const exists = fs.existsSync(dir);
+  if (!exists) {
+    Logger.error(`The directory or file ${dir} does not exist`);
+    process.exit(ExitCodes.Error);
+  }
+
+  const dirStat = fs.statSync(dir);
+  if (dirStat.isFile()) {
+    if (path.extname(dir) === HaibtExtension)
+      return [dir];
+    else {
+      Logger.error(`The file ${dir} is not a file with the extension ${HaibtExtension}`);
+      process.exit(ExitCodes.Error);
+    }
+  }
+
   const files: string[] = [];
   Logger.info(`Looking for files in ${path.resolve(dir)}`);
 
@@ -19,7 +38,7 @@ export function findFiles(dir: string): string[] {
       const itemPath = path.join(currentDir, item);
       const stat = fs.statSync(itemPath);
 
-      if (stat.isFile() && path.extname(item) === '.hbt') {
+      if (stat.isFile() && path.extname(item) === HaibtExtension) {
         files.push(itemPath);
       } else if (stat.isDirectory()) {
         traverse(itemPath);
