@@ -35,7 +35,7 @@ export class TemplateChecker {
       });
     }
 
-    tag.properties.forEach(prop => this.checkAttribute(prop));
+    tag.attributes.forEach(prop => this.checkAttribute(prop));
 
     tag.children.forEach(child => {
       switch (child.type) {
@@ -51,7 +51,7 @@ export class TemplateChecker {
     });
   }
 
-  private checkAttribute(attribute: N.TagPropertyNode): void {
+  private checkAttribute(attribute: N.TagProperty): void {
 
   }
 

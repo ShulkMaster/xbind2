@@ -107,8 +107,7 @@ export class ReactPlugin {
   }
 
   private writeTag(tag: N.TagNode, printer: Printer, indent: number): void {
-    const attribs = tag.properties.filter(p => p.type === 'attribute') as N.AttributeNode[];
-    const directives = tag.properties.filter(p => p.type === 'directive') as N.DirectiveNode[];
+    const { directives,attributes} = tag;
 
     const ifDirective = directives.find(d => d.kind === 'if');
     const elseDirective = directives.find(d => d.kind === 'else');

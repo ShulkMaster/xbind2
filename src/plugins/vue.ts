@@ -2,8 +2,7 @@ import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
 import { ConstantExpressionNode, DirectiveType, TypeDeclarationNode } from 'types/nodes';
-import { TemplateSymbols } from '../scope/TemplateSymbols';
-import { Resolver } from '../scope/Resolver';
+import { TemplateSymbols, Resolver } from 'scope';
 
 export class VuePlugin {
   public readonly outDir: string;
@@ -106,10 +105,10 @@ export class VuePlugin {
           if(child.children.length < 1) {
             printer.append(`<${child.openTag.text}`, indent);
             printer.appendLine('/>', 0);
-            this.writeAttributes(child.properties, printer);
+            this.writeAttributes(child.attributes, printer);
           } else {
             printer.append(`<${child.openTag.text}`, indent);
-            this.writeAttributes(child.properties, printer);
+            this.writeAttributes(child.attributes, printer);
             printer.appendLine('>', 0);
             this.writeTemplateNodes(child.children, printer, indent + 2);
             printer.appendLine(`</${child.openTag.text}>`, indent);
@@ -125,7 +124,7 @@ export class VuePlugin {
     }
   }
 
-  private writeAttributes(attributes: N.TagPropertyNode[], printer: Printer): void {
+  private writeAttributes(attributes: N.TagProperty[], printer: Printer): void {
     for (const attribute of attributes) {
       switch (attribute.type) {
         case 'attribute':

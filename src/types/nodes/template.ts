@@ -1,5 +1,6 @@
 import { Token } from 'types/token';
 import { ExpressionResult } from './expression';
+import { OrArray } from './index';
 
 export enum DirectiveType {
   if = 'if',
@@ -22,7 +23,7 @@ export type DirectiveNode = {
   value: ExpressionResult;
 };
 
-export type TagPropertyNode = AttributeNode | DirectiveNode;
+export type TagProperty = AttributeNode | DirectiveNode;
 
 export type CharDataNode = {
   type: 'charData';
@@ -33,7 +34,8 @@ export type TagNode = {
   type: 'tag';
   openTag: Token;
   closeTag: Token | undefined;
-  properties: TagPropertyNode[];
+  attributes: AttributeNode[];
+  directives: DirectiveNode[];
   children: ChildNode[];
 };
 
@@ -53,4 +55,21 @@ export type TemplateFollowNode = {
   siblings: TagNode[];
 };
 
+export type AttributeBind = {
+  identifier: Token;
+  expression: ExpressionResult;
+}
+
+export type DirectiveBind = {
+  token: Token;
+  type: DirectiveType;
+}
+
 export type TemplateResult = ChildNode[] | CharDataNode | TemplateFollowNode | void;
+export type AttributeVisit =
+  | OrArray<AttributeNode>
+  | OrArray<DirectiveNode>
+  | OrArray<TagProperty>
+  | AttributeBind
+  | DirectiveBind
+  | ExpressionResult;

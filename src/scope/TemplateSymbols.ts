@@ -33,7 +33,7 @@ export class TemplateSymbols {
         continue;
       }
       const tag = child;
-      const directives = tag.properties.filter(p => p.type === 'directive');
+      const directives = tag.directives;
       this.makePairs(tag, directives as DirectiveNode[]);
       this.innerFill(tag.children);
     }
@@ -74,7 +74,7 @@ export class TemplateSymbols {
     const previousTag = tagGroup[tagIfIndex - 1];
 
     if (previousTag?.type === 'tag') {
-      const directives = previousTag.properties.filter(p => p.type === 'directive') as DirectiveNode[];
+      const directives = previousTag.directives;
       const templateDirective = directives.find(d => d.kind === 'template');
       if (templateDirective && templateDirective.name.text === templateName) {
         // Swap the previous tag with the tagIf to keep order
@@ -87,7 +87,7 @@ export class TemplateSymbols {
 
     const tagIfFollow = tagGroup[tagIfIndex + 1];
     if (tagIfFollow.type === 'tag') {
-      const directives = tagIfFollow.properties.filter(p => p.type === 'directive') as DirectiveNode[];
+      const directives = tagIfFollow.directives;
       const templateDirective = directives.find(d => d.kind === 'template');
 
       if(!templateDirective) {

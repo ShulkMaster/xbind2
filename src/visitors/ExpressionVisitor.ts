@@ -305,6 +305,23 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       };
     }
 
+    const dot = ctx.Dot();
+    if(dot) {
+      const identifier = ctx.Identifier();
+      return {
+        kind: ExpressionKind.PostfixExpression,
+        primary: {
+          kind: ExpressionKind.PrimaryExpression,
+          identifier: symbolToToken(identifier.symbol),
+          groupExpression: undefined,
+        },
+        operator: undefined,
+        call: undefined,
+        indexed: undefined,
+        follow,
+      };
+    }
+
     const open = ctx.OParen();
     if(open) {
       const close = ctx.CParen().symbol;

@@ -1,50 +1,80 @@
 import { ExpressionVisitor } from './ExpressionVisitor';
 import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
-import { DirectiveType, ExpressionKind, ExpressionResult, TagPropertyNode } from 'types/nodes';
-import { Token } from 'types/token';
+import * as N from 'types/nodes';
+import { DirectiveBind, DirectiveType, ExpressionKind } from 'types/nodes';
 import { symbolToToken } from 'utils/parse';
-import { ReturnType } from '../types/nodes/native';
+import { ReturnType } from 'types/nodes/native';
 
-export class AttributeVisitor extends BaseVisitor<TagPropertyNode[]> {
+export class AttributeVisitor extends BaseVisitor<N.AttributeVisit> {
   private readonly expVisitor = new ExpressionVisitor();
 
-  visitAttributes = (ctx: H.AttributesContext): TagPropertyNode[] => {
-    const result: TagPropertyNode[] = [];
-    this.visitAttributesInt(ctx, result);
-    return result;
-  };
-
-  private visitAttributesInt = (ctx: H.AttributesContext, nodes: TagPropertyNode[]): void => {
-    const attribute = ctx.attribute();
-    this.visitAttributeInt(attribute, nodes);
-    const next = ctx.attributes();
-    if(next?.getChildCount()) {
-      this.visitAttributesInt(next, nodes);
+  visitAttributes = (ctx: H.AttributesContext): N.TagProperty[] => {
+    let current = ctx;
+    const nodes: N.TagProperty[] = [];
+    while (current?.getChildCount()) {
+      this.visitAttribute(current.attribute());
+      current = current.attributes();
     }
+    return nodes;
   };
 
-  private visitAttributeInt = (ctx: H.AttributeContext, nodes: TagPropertyNode[]): void => {
+  visitAttribute = (ctx: H.AttributeContext): N.TagProperty => {
     const directive = ctx.directive();
-    if (directive.getChildCount()) {
-      nodes.push(this.visitDirectiveInt(directive));
-      return;
+    if (directive?.getChildCount()) {
+      return this.visitDirective(directive);
     }
+
+    const attribute = ctx.attributeBind();
+    if (attribute?.getChildCount()) {
+      const bind = this.visitAttributeBind(attribute);
+      return {
+        type: 'attribute',
+        name: bind.identifier,
+        value: bind.expression,
+      };
+    }
+
+    const identifier = ctx.Identifier();
+
+    return {
+      type: 'attribute',
+      name: symbolToToken(identifier.symbol),
+      value: {
+        kind: ExpressionKind.PrimaryExpression,
+        identifier: symbolToToken(identifier.symbol),
+        groupExpression: undefined,
+      },
+    };
   };
 
-  private visitDirectiveInt = (ctx: H.DirectiveContext): TagPropertyNode => {
-    const [kind, token] = this.visitDirectiveNameInt(ctx.directiveName());
-    const value = this.visitAttribValueInt(ctx.attributeValue());
+  visitAttributeBind = (ctx: H.AttributeBindContext): N.AttributeBind => {
+    const identifier = ctx.Identifier();
+    const attributeBindFollow = ctx.attributeBindFollow();
+    const expression = this.visitAttributeBindFollow(attributeBindFollow);
+    return {
+      identifier: symbolToToken(identifier.symbol),
+      expression,
+    };
+  };
+
+  visitAttributeBindFollow = (ctx: H.AttributeBindFollowContext): N.ExpressionResult => {
+    return this.visitAttribValue(ctx.attributeValue());
+  };
+
+  visitDirective = (ctx: H.DirectiveContext): N.DirectiveNode => {
+    const { type, token } = this.visitDirectiveName(ctx.directiveName());
+    const value = this.visitAttribValue(ctx.attributeValue());
 
     return {
       type: 'directive',
       name: token,
-      kind,
+      kind: type,
       value,
     };
   };
 
-  private visitAttribValueInt = (ctx: H.AttributeValueContext): ExpressionResult  => {
+  visitAttribValue = (ctx: H.AttributeValueContext): N.ExpressionResult  => {
     const stringLiteral = ctx.StringLiteral();
 
     if (stringLiteral) {
@@ -59,30 +89,45 @@ export class AttributeVisitor extends BaseVisitor<TagPropertyNode[]> {
     return this.expVisitor.visitExpression(exp);
   };
 
-  private visitDirectiveNameInt = (ctx: H.DirectiveNameContext): [DirectiveType, Token] => {
+  visitDirectiveName = (ctx: H.DirectiveNameContext): DirectiveBind => {
     const ifDirective = ctx.If();
     if (ifDirective) {
-      return [DirectiveType.if, symbolToToken(ifDirective.symbol)];
+      return {
+        type: DirectiveType.if,
+        token: symbolToToken(ifDirective.symbol),
+      };
     }
 
     const elseDirective = ctx.Else();
     if (elseDirective) {
-      return [DirectiveType.else, symbolToToken(elseDirective.symbol)];
+      return {
+        type: DirectiveType.else,
+        token: symbolToToken(elseDirective.symbol),
+      };
     }
 
     const switchDirective = ctx.Switch();
     if (switchDirective) {
-      return [DirectiveType.switch, symbolToToken(switchDirective.symbol)];
+      return {
+        type: DirectiveType.switch,
+        token: symbolToToken(switchDirective.symbol),
+      };
     }
 
     const caseDirective = ctx.Case();
     if (caseDirective) {
-      return [DirectiveType.case, symbolToToken(caseDirective.symbol)];
+      return {
+        type: DirectiveType.case,
+        token: symbolToToken(caseDirective.symbol),
+      };
     }
 
     const templateDirective = ctx.Template();
     if (templateDirective) {
-      return [DirectiveType.template, symbolToToken(templateDirective.symbol)];
+      return {
+        type: DirectiveType.template,
+        token: symbolToToken(templateDirective.symbol),
+      };
     }
 
     throw new Error(`Unknown directive name: ${ctx.getText()}`);

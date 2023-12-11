@@ -1,16 +1,16 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
-import { CharDataNode, ChildNode, TagNode, TemplateFollowNode, TemplateResult } from 'types/nodes/template';
+import * as N from 'types/nodes';
 import { symbolToToken } from '../utils/parse';
 import { ExpressionVisitor } from './ExpressionVisitor';
 import { AttributeVisitor } from './AttributeVisitor';
 
 
-export class TemplateVisitor extends BaseVisitor<TemplateResult> {
+export class TemplateVisitor extends BaseVisitor<N.TemplateResult> {
   private readonly expVisitor = new ExpressionVisitor();
   private readonly attributeVisitor = new AttributeVisitor();
 
-  visitTemplate = (ctx: H.TemplateContext): TagNode[] => {
+  visitTemplate = (ctx: H.TemplateContext): N.TagNode[] => {
     if (ctx.getChildCount() < 1) {
       return [];
     }
@@ -21,11 +21,12 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
     const attributes = ctx.attributes();
     const properties = attributes?.getChildCount() ? this.attributeVisitor.visitAttributes(attributes) : [];
 
-    const currentTag: TagNode = {
+    const currentTag: N.TagNode = {
       type: 'tag',
       openTag: symbolToToken(identifier),
       closeTag,
-      properties,
+      attributes: properties.filter((p: N.TagProperty): p is N.AttributeNode => p.type === 'attribute'),
+      directives: properties.filter((p: N.TagProperty): p is N.DirectiveNode => p.type === 'directive'),
       children,
     };
 
@@ -33,14 +34,14 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
     return siblings;
   };
 
-  visitTemplateFollow = (ctx: H.TemplateFollowContext): TemplateFollowNode => {
+  visitTemplateFollow = (ctx: H.TemplateFollowContext): N.TemplateFollowNode => {
     const closeTag = ctx.Identifier()?.symbol;
     const body = ctx.templateBody();
     const template = ctx.template();
     const siblings = this.visitTemplate(template);
     const bodyResult = this.visitTemplateBody(body);
 
-    let children: ChildNode[] = [];
+    let children: N.ChildNode[] = [];
     if (Array.isArray(bodyResult)) {
       children = bodyResult;
     } else if (bodyResult) {
@@ -58,8 +59,8 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
     };
   };
 
-  visitTemplateBody = (ctx: H.TemplateBodyContext | null): ChildNode[] => {
-    const result: ChildNode[] = [];
+  visitTemplateBody = (ctx: H.TemplateBodyContext | null): N.ChildNode[] => {
+    const result: N.ChildNode[] = [];
     if(!ctx) return result;
 
     const template = ctx.template();
@@ -93,7 +94,7 @@ export class TemplateVisitor extends BaseVisitor<TemplateResult> {
     return result;
   };
 
-  visitCharData = (ctx: H.CharDataContext): CharDataNode => {
+  visitCharData = (ctx: H.CharDataContext): N.CharDataNode => {
     const children = ctx.children;
     if(!children) return { type: 'charData', contents: [] };
 
