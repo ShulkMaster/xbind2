@@ -1,25 +1,33 @@
 import * as N from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { TemplateSymbols } from '../scope/TemplateSymbols';
 import { ConstantExpressionNode } from 'types/nodes';
+import { ComponentTable, Resolver } from 'scope';
 
 export class ReactPlugin {
-  public readonly outDir = 'outdir\\react\\';
-  private t: TemplateSymbols = {} as TemplateSymbols;
-  public constructor() {
+  private readonly outDir: string;
+  private resolver: Resolver = {} as Resolver;
+  private currentComponent: ComponentTable = {} as ComponentTable;
+
+  constructor(out: string) {
+    this.outDir = out;
     Logger.info('React plugin loaded');
+  }
+
+  public setResolver(resolver: Resolver): void {
+    this.resolver = resolver;
   }
 
   public writeProgram(program: N.ProgramNode): void {
     const {types, components} = program;
-    const baseDir = this.outDir + program.namespace.join(path.sep);
+    const baseDir = path.join(this.outDir, ...program.scope);
     const printer = new Printer();
 
     for (const type of types) {
       printer.printType(type);
 
       for (const component of components) {
+        this.currentComponent = this.resolver.resolveComponent(component.scope, component.name.text);
         this.writeComponent(component, printer);
       }
 
@@ -32,8 +40,6 @@ export class ReactPlugin {
 
   private writeComponent(component: N.ComponentNode, printer: Printer): void {
     const { name, propsTypeName } = component;
-    this.t = new TemplateSymbols(component.template);
-    this.t.fill();
 
     if (propsTypeName) {
       printer.appendLine(`export function ${name.text}(props: ${propsTypeName}) {`);
@@ -59,7 +65,8 @@ export class ReactPlugin {
       printer.appendLine(`const { ${propsWithoutDefault.map(p => p.name.text).join(', ')} } = props;`, 2);
     }
 
-    for (const pair of this.t.ifElsePairs.values()) {
+    const templateTable = this.currentComponent.templateSymbols;
+    for (const pair of templateTable.ifElsePairs.values()) {
       if(pair.areContiguous) continue;
       printer.appendLine(`const ${pair.identifierExpResult} = ${Writer.writeExpression(pair.expression)};`, 2);
     }
@@ -144,7 +151,9 @@ export class ReactPlugin {
   }
 
   private writeIfPair(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {
-    const pair = this.t.ifElsePairs.get(templateName);
+    const templateTable = this.currentComponent.templateSymbols;
+
+    const pair = templateTable.ifElsePairs.get(templateName);
     if (!pair) {
       throw new Error(`Template pair ${templateName} not found`);
     }
@@ -178,7 +187,7 @@ export class ReactPlugin {
   }
 
   private writeElseTemplate(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {
-    const pair = this.t.ifElsePairs.get(templateName);
+    const pair = this.currentComponent.templateSymbols.ifElsePairs.get(templateName);
     if (!pair) {
       throw new Error(`Template pair ${templateName} not found`);
     }

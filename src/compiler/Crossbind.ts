@@ -17,8 +17,8 @@ export class Crossbind {
   }
 
   public check(program: N.ProgramNode): void {
-    const {namespace, uses, components, types} = program;
-    for (const name of namespace) {
+    const {scope, uses, components, types} = program;
+    for (const name of scope) {
       this.scopeStack.push(name);
     }
 
@@ -26,7 +26,7 @@ export class Crossbind {
       this.checkComponent(component, program);
     }
 
-    namespace.forEach(() => {
+    scope.forEach(() => {
       this.scopeStack.pop();
     });
   }

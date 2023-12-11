@@ -50,7 +50,7 @@ export class ExpressionCheck {
     }
 
     if (identifier) {
-      const resolution = Resolver.resolveIdentifier(identifier.text, [], []);
+      const resolution = Resolver.resolveIdentifier(identifier.text);
 
       if(!resolution) {
         return {

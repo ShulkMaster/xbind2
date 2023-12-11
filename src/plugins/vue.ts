@@ -3,13 +3,20 @@ import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
 import { ConstantExpressionNode, DirectiveType, TypeDeclarationNode } from 'types/nodes';
 import { TemplateSymbols } from '../scope/TemplateSymbols';
+import { Resolver } from '../scope/Resolver';
 
 export class VuePlugin {
-  public readonly outDir = 'outdir\\vue\\';
+  public readonly outDir: string;
+  private resolver: Resolver = {} as Resolver;
   private t: TemplateSymbols = {} as TemplateSymbols;
 
-  public constructor() {
+  public constructor(dir: string) {
+    this.outDir = dir;
     Logger.info('Vue plugin loaded');
+  }
+
+  public setResolver(resolver: Resolver): void {
+    this.resolver = resolver;
   }
 
   private typesToImport(types: TypeDeclarationNode[]): string[] {
@@ -28,7 +35,7 @@ export class VuePlugin {
 
   public writeProgram(program: N.ProgramNode): void {
     const { components } = program;
-    const baseDir = this.outDir + program.namespace.join(path.sep);
+    const baseDir = this.outDir + program.scope.join(path.sep);
     const printer = new Printer();
 
     for (const type of program.types) {
@@ -45,7 +52,7 @@ export class VuePlugin {
 
   private writeComponent(component: N.ComponentNode, program: N.ProgramNode, printer: Printer): void {
     const imports = this.typesToImport(program.types);
-    const baseDir = this.outDir + program.namespace.join(path.sep);
+    const baseDir = this.outDir + program.scope.join(path.sep);
     makeDirs(baseDir);
     this.t = new TemplateSymbols(component.template);
     this.t.fill();

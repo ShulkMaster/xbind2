@@ -1,14 +1,21 @@
 import { ClassNode, StyleNode, UsePath } from 'types/nodes';
 import { StyleSymbol } from 'types/crossbind';
 
-export class StyleResolver {
+export class StyleTable {
   public readonly styles = new Map<string, StyleSymbol>();
+  public readonly scope: UsePath;
 
-  registerStyle(scope: UsePath, style: StyleNode): void {
+  constructor(scope: UsePath) {
+    this.scope = scope;
+  }
+
+  public registerStyle(style: StyleNode): void {
     const classNames = new Set<string>();
     for (const subStyle of style.classes) {
       this.registerClass(classNames, subStyle);
     }
+
+    const scope = [...this.scope, style.name.text];
     this.styles.set(scope.join('.'), {
       name: style.name.text,
       classNames,
@@ -17,7 +24,7 @@ export class StyleResolver {
     });
   }
 
-  registerClass(classes: Set<string>, classNode: ClassNode): void {
+  private registerClass(classes: Set<string>, classNode: ClassNode): void {
     classes.add(classNode.name.text);
     for (const subStyle of classNode.subClasses) {
       this.registerClass(classes, subStyle);

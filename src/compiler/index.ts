@@ -1,13 +1,12 @@
 import { CompileOptions, ExitCodes } from 'types/console';
 import { asLogLevel } from 'utils/parse';
-import { findFiles, Logger, openFileStream, Printer } from 'utils';
-import { parseStream } from 'visitors';
+import { findFiles, Logger, openFileStream } from 'utils';
+import { parseStream, ProgramVisitor } from 'visitors';
 import { ParseUnit, VisitedUnit } from 'types/crossbind';
 import { ParseErrorListener } from './ParseErrorListener';
-import { ProgramVisitor } from '../visitors/ProgramVisitor';
 import { Crossbind } from './Crossbind';
-import { Resolver } from '../scope/Resolver';
-import { StyleWriter } from '../utils/StyleWriter';
+import { Resolver } from 'scope/Resolver';
+import { ReactPlugin, VuePlugin } from 'plugins';
 
 export * from './Crossbind';
 
@@ -35,6 +34,7 @@ export function compile(source: string, option: CompileOptions): void {
   const crossBind = new Crossbind(resolver);
 
   visitedUnits.forEach(unit => resolver.registerUnit(unit));
+  // todo: enable compilation checks
   // visitedUnits.forEach(unit => crossBind.check(unit.program));
   if (crossBind.errors.length > 0) {
     Logger.error(`Unable to compile, found ${crossBind.errors.length} errors`);
@@ -42,13 +42,12 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   visitedUnits.forEach(unit => Logger.debug(unit.program));
+  const plugin = option.plugin === 'react'
+    ? new ReactPlugin(option.output)
+    : new VuePlugin(option.output);
+  plugin.setResolver(resolver);
+  visitedUnits.forEach(unit => plugin.writeProgram(unit.program));
   Logger.info('Compilation complete');
-  const style = visitedUnits[0].program.styles[0];
-  const printer = new Printer();
-  const styler = new StyleWriter(printer);
-  styler.writeStyle(style, 0);
-  const text = printer.flush();
-  Logger.info(text);
 }
 
 export function parseHaibt(sourceFile: string): ParseUnit {
@@ -68,7 +67,7 @@ export function parseHaibt(sourceFile: string): ParseUnit {
 }
 
 function visitHaibt(unit: ParseUnit): VisitedUnit {
-  const visitor = new ProgramVisitor();
+  const visitor = new ProgramVisitor(unit.fileName);
   const result = visitor.visitProgram(unit.program);
   return {
     program: result,
