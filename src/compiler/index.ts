@@ -1,12 +1,13 @@
 import { CompileOptions, ExitCodes } from 'types/console';
 import { asLogLevel } from 'utils/parse';
-import { findFiles, Logger, openFileStream } from 'utils';
+import { findFiles, Logger, openFileStream, Printer } from 'utils';
 import { parseStream } from 'visitors';
 import { ParseUnit, VisitedUnit } from 'types/crossbind';
 import { ParseErrorListener } from './ParseErrorListener';
 import { ProgramVisitor } from '../visitors/ProgramVisitor';
 import { Crossbind } from './Crossbind';
 import { Resolver } from '../scope/Resolver';
+import { StyleWriter } from '../utils/StyleWriter';
 
 export * from './Crossbind';
 
@@ -42,6 +43,12 @@ export function compile(source: string, option: CompileOptions): void {
 
   visitedUnits.forEach(unit => Logger.debug(unit.program));
   Logger.info('Compilation complete');
+  const style = visitedUnits[0].program.styles[0];
+  const printer = new Printer();
+  const styler = new StyleWriter(printer);
+  styler.writeStyle(style, 0);
+  const text = printer.flush();
+  Logger.info(text);
 }
 
 export function parseHaibt(sourceFile: string): ParseUnit {

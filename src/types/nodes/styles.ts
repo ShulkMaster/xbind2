@@ -1,5 +1,6 @@
 import { Token } from 'types/token';
 import { OrArray } from './index';
+import * as N from './index';
 
 export type ModifierNode = {
   modifier: 'dot' | 'gt';
@@ -36,12 +37,20 @@ export type RuleNode = {
   value: StyleValueNode[];
 }
 
+export type ClassChild = N.RuleNode | N.ClassNode;
+
+export type ClassNode = {
+  type: 'class';
+  name: Token;
+  rules: RuleNode[];
+  subClasses: ClassNode[];
+  modifiers: ModifierNode[];
+}
+
 export type StyleNode = {
   type: 'style';
   name: Token;
-  modifiers: ModifierNode[];
-  rules: RuleNode[];
-  subStyles: StyleNode[];
+  classes: ClassNode[];
 }
 
 export type StyleVisit =
@@ -49,6 +58,7 @@ export type StyleVisit =
   | ModifierNode[]
   | OrArray<RuleNode>
   | OrArray<StyleValueNode>
-  | OrArray<RuleNode | StyleNode>
+  | OrArray<ClassNode>
+  | OrArray<ClassChild>
   | Token
   | undefined;

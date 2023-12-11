@@ -6,7 +6,7 @@ import { VisitedUnit } from 'types/crossbind';
 import { filePathToScope, Logger } from 'utils';
 
 export class Resolver {
-  private readonly styler = new StyleResolver();
+  public readonly styler = new StyleResolver();
 
   public registerUnit(unit: VisitedUnit): void {
     const file = unit.fileName;

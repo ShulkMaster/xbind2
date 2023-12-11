@@ -16,14 +16,18 @@ useSubModule: Dot Identifier useSubModule | ;
 typeDef: Type Identifier Assign OBrace typeDefBody CBrace;
 typeDefBody: Identifier Colon varType SemiColon typeDefBody | ;
 
-style: Style Identifier styleCombine OBrace styleRules CBrace;
+style: Style Identifier OBrace styleClasses CBrace;
+
+styleClasses: styleClass styleClasses | ;
+
+styleClass: Dot Identifier styleCombine OBrace styleRules CBrace;
 
 styleCombine: stlyeModifier Identifier styleCombine | ;
-stlyeModifier: Dot | GreaterThan;
+stlyeModifier: Dot | GreaterThan Dot;
 
 styleRules: styleRule styleRules | ;
 
-styleRule: (Identifier | Color) Colon styleRuleFollow SemiColon | style;
+styleRule: (Identifier | Color) Colon styleRuleFollow SemiColon | styleClass;
 
 styleRuleFollow: (HEX_COLOR | measure | Identifier) styleRuleFollow |;
 

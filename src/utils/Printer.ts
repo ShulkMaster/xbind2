@@ -21,6 +21,12 @@ export class Printer {
     this.texts.push('\r\n');
   }
 
+  public flush(): string {
+    const text = this.texts.join('');
+    this.texts = [];
+    return text;
+  }
+
   public flushToFile(fileName: string): void {
     fs.writeFileSync(fileName, this.texts.join(''));
     this.texts = [];

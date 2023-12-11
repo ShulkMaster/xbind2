@@ -1,27 +1,47 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
 import * as N from 'types/nodes';
-import { RuleNode, StyleKind } from 'types/nodes';
+import { ClassChild, StyleKind } from 'types/nodes';
 import { symbolToToken } from 'utils/parse';
 import { Token } from 'types/token';
-
-type StyleChild = N.RuleNode | N.StyleNode;
 
 export class StyleVisitor extends BaseVisitor<N.StyleVisit> {
 
   visitStyle = (ctx: H.StyleContext): N.StyleNode => {
     const name = ctx.Identifier();
-    const combination = ctx.styleCombine();
-    const modifiers = this.visitStyleCombine(combination);
-    const styleRules = ctx.styleRules();
-    const rules = this.visitStyleRules(styleRules);
+    const classesContext = ctx.styleClasses();
+    const classes = this.visitStyleClasses(classesContext);
 
     return {
       name: symbolToToken(name.symbol),
       type: 'style',
-      subStyles: rules.filter(r => r.type === 'style') as N.StyleNode[],
-      rules: rules.filter(r => r.type === 'rule') as RuleNode[],
-      modifiers,
+      classes,
+    };
+  };
+
+  visitStyleClasses = (ctx: H.StyleClassesContext): N.ClassNode[] => {
+    const classes: N.ClassNode[] = [];
+    let current: H.StyleClassesContext = ctx;
+
+    while(current?.getChildCount()) {
+      const classContext = current.styleClass();
+      classes.push(this.visitStyleClass(classContext));
+      current = current.styleClasses();
+    }
+    return classes;
+  };
+
+  visitStyleClass = (ctx: H.StyleClassContext): N.ClassNode => {
+    const nameToken = ctx.Identifier();
+    const rulesContext = ctx.styleRules();
+    const modifiersContext = ctx.styleCombine();
+    const rules = this.visitStyleRules(rulesContext);
+    return {
+      type: 'class',
+      name: symbolToToken(nameToken.symbol),
+      rules: rules.filter((r): r is N.RuleNode => r.type === 'rule'),
+      subClasses: rules.filter((r): r is N.ClassNode => r.type === 'class'),
+      modifiers: this.visitStyleCombine(modifiersContext),
     };
   };
 
@@ -53,8 +73,8 @@ export class StyleVisitor extends BaseVisitor<N.StyleVisit> {
   };
 
 
-  visitStyleRules = (ctx: H.StyleRulesContext): StyleChild[] => {
-    const rules: StyleChild[] = [];
+  visitStyleRules = (ctx: H.StyleRulesContext): ClassChild[] => {
+    const rules: ClassChild[] = [];
     let current: H.StyleRulesContext = ctx;
 
     while(current?.getChildCount()) {
@@ -66,10 +86,10 @@ export class StyleVisitor extends BaseVisitor<N.StyleVisit> {
     return rules;
   };
 
-  visitStyleRule = (ctx: H.StyleRuleContext): N.RuleNode | N.StyleNode => {
-    const subStyle = ctx.style();
+  visitStyleRule = (ctx: H.StyleRuleContext): N.ClassChild => {
+    const subStyle = ctx.styleClass();
     if(subStyle) {
-      return this.visitStyle(subStyle);
+      return this.visitStyleClass(subStyle);
     }
 
     const identifier = ctx.Identifier() || ctx.Color();

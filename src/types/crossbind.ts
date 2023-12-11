@@ -26,6 +26,6 @@ export type VisitedUnit = {
 export type StyleSymbol = {
   type: 'style';
   name: string;
-  subStyles: Set<string>;
+  classNames: Set<string>;
   scope: UsePath;
 }
