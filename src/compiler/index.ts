@@ -34,10 +34,10 @@ export function compile(source: string, option: CompileOptions): void {
   const crossBind = new Crossbind(resolver);
 
   visitedUnits.forEach(unit => resolver.registerUnit(unit));
-  // todo: enable compilation checks
-  // visitedUnits.forEach(unit => crossBind.check(unit.program));
+  visitedUnits.forEach(unit => crossBind.check(unit.program));
   if (crossBind.errors.length > 0) {
-    Logger.error(`Unable to compile, found ${crossBind.errors.length} errors`);
+    Logger.compileErrors(crossBind.errors);
+    Logger.error(`typechecking failure, found ${crossBind.errors.length} errors`);
     return;
   }
 

@@ -69,11 +69,10 @@ export class Logger {
     this.log(LogLevel.ERROR, message, padding);
   }
 
-  public static compileErrors(erros: CompileError[]): void {
-    for (const error of erros) {
-      const { message, file, line, column, text } = error;
-      this.error(`${file}(${line}, ${column}): ${message}`);
-      this.error('> ' + text, 2);
+  public static compileErrors(errors: CompileError[]): void {
+    for (const error of errors) {
+      const { file, column, line, message} = error;
+      Logger.error(`${file} (${line},${column}): ${message}`);
     }
   }
 }

@@ -1,22 +1,27 @@
 import { CompileError } from 'types/logging';
 import { ExpressionCheck } from './ExpressionCheck';
 import * as N from 'types/nodes';
+import { Resolver } from 'scope';
 
 export class TemplateChecker {
   private readonly errorStack: CompileError[];
   private readonly expChecker: ExpressionCheck;
   private readonly program: N.ProgramNode;
 
-  constructor(errorStack: CompileError[], program: N.ProgramNode) {
+  constructor(errorStack: CompileError[], program: N.ProgramNode, resolver: Resolver) {
     this.errorStack = errorStack;
     this.program = program;
-    this.expChecker = new ExpressionCheck(program);
+    this.expChecker = new ExpressionCheck(program, resolver);
   }
 
   checkTemplate(template: N.TemplateNode): void {
     template.children.forEach(child => {
       this.checkTag(child);
     });
+  }
+
+  public getErrors(): CompileError[] {
+    return this.errorStack;
   }
 
   private checkTag(tag: N.TagNode): void {
@@ -51,8 +56,13 @@ export class TemplateChecker {
     });
   }
 
-  private checkAttribute(attribute: N.TagProperty): void {
-
+  private checkAttribute(attribute: N.AttributeNode): void {
+    const { name, value } = attribute;
+    // todo: check attribute name exits and has correct type
+    if (value) {
+      const expChecker = this.expChecker.checkExpression(value);
+      this.errorStack.push(...expChecker.errors);
+    }
   }
 
   private checkExpression(expression: N.ExpressionResult): void {

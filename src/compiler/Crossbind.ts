@@ -8,9 +8,8 @@ import { TemplateChecker } from './TemplateChecker';
 import { Resolver } from 'scope/Resolver';
 
 export class Crossbind {
-  private readonly scopeStack: string[] = [];
   public readonly errors: CompileError[] = [];
-  private res: Resolver;
+  private readonly res: Resolver;
 
   constructor(res: Resolver) {
     this.res = res;
@@ -18,26 +17,16 @@ export class Crossbind {
 
   public check(program: N.ProgramNode): void {
     const {scope, uses, components, types} = program;
-    for (const name of scope) {
-      this.scopeStack.push(name);
-    }
-
     for (const component of components) {
       this.checkComponent(component, program);
     }
-
-    scope.forEach(() => {
-      this.scopeStack.pop();
-    });
   }
 
   private checkComponent(comp: N.ComponentNode, p: ProgramNode): void {
     const {name, properties, template} = comp;
-    this.scopeStack.push(name.text);
     this.checkProperties(properties, p);
-    const templateChecker = new TemplateChecker(this.errors, p);
+    const templateChecker = new TemplateChecker(this.errors, p, this.res);
     templateChecker.checkTemplate(template);
-    this.scopeStack.pop();
   }
 
   private checkProperties(properties: N.PropertyNode[], p: ProgramNode): void {
@@ -47,7 +36,7 @@ export class Crossbind {
         continue;
       }
 
-      const checker = new ExpressionCheck(p);
+      const checker = new ExpressionCheck(p, this.res);
       const validProp = checker.checkExpression(initializer);
 
       if (!validProp.valid) {

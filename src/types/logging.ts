@@ -14,5 +14,4 @@ export type CompileError = {
   line: number;
   column: number;
   file: string;
-  text: string;
 };

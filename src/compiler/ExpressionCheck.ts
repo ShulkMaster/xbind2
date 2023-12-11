@@ -1,13 +1,18 @@
 import { ExpressionCheckResult } from 'types/crossbind';
 import * as N from 'types/nodes';
+import { UsePath } from 'types/nodes';
 import { Resolver } from 'scope/Resolver';
 import { ReturnType } from 'types/nodes/native';
 
 export class ExpressionCheck {
-  private readonly p: N.ProgramNode;
+  private readonly fileName: string;
+  private resolver: Resolver;
+  private scopes: UsePath = [];
 
-  constructor(p: N.ProgramNode) {
-    this.p = p;
+  constructor(program: N.ProgramNode, resolver: Resolver) {
+    this.fileName = program.sourceFile;
+    this.resolver = resolver;
+    this.scopes = program.scope;
   }
 
   checkExpression(expression: N.ExpressionResult): ExpressionCheckResult {
@@ -16,6 +21,8 @@ export class ExpressionCheck {
         return this.checkConstantExpression(expression);
       case N.ExpressionKind.PrimaryExpression:
         return this.checkPrimaryExpression(expression);
+      case N.ExpressionKind.PostfixExpression:
+        return this.checkPostfixExpression(expression);
       case N.ExpressionKind.AssignmentExpression:
       case N.ExpressionKind.ConditionalExpression:
       case N.ExpressionKind.TernaryExpression:
@@ -27,7 +34,6 @@ export class ExpressionCheck {
       case N.ExpressionKind.MultiplicativeExpression:
       case N.ExpressionKind.CastExpression:
       case N.ExpressionKind.UnaryExpression:
-      case N.ExpressionKind.PostfixExpression:
         throw new Error('Not implemented');
       default:
         throw new Error('Invalid expression');
@@ -50,9 +56,9 @@ export class ExpressionCheck {
     }
 
     if (identifier) {
-      const resolution = Resolver.resolveIdentifier(identifier.text);
+      const resolution = this.resolver.resolve(this.scopes, identifier.text);
 
-      if(!resolution) {
+      if (!resolution) {
         return {
           valid: false,
           errors: [
@@ -61,10 +67,10 @@ export class ExpressionCheck {
               text: identifier.text,
               column: identifier.column,
               line: identifier.line,
-              file: this.p.sourceFile,
+              file: this.fileName,
             }
           ],
-          result: '' as ReturnType,
+          result: ReturnType.Void,
         };
       }
 
@@ -76,5 +82,20 @@ export class ExpressionCheck {
     }
 
     throw new Error('Invalid primary expression');
+  }
+
+  checkPostfixExpression(exp: N.PostfixExpressionNode): ExpressionCheckResult {
+    const { follow, primary, operator } = exp;
+    const result = this.checkExpression(primary);
+
+    if (follow) {
+      return { valid: true, errors: [], result: ReturnType.Void };
+    }
+
+    if (!result.valid) {
+      return result;
+    }
+
+    return result;
   }
 }

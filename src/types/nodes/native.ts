@@ -7,6 +7,8 @@ export const enum ReturnType {
   Boolean = 'boolean',
   Color = 'color',
   Undefined = 'undefined',
+  Component = 'component',
+  Style = 'style',
 }
 
 export const enum EventTarget {
