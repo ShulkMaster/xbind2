@@ -1,14 +1,25 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import { ProgramContext, ComponentContext, StyleContext } from 'parser/Haibt';
-import { ComponentNode, ProgramNode, ProgramResult, StyleNode, TypeDeclarationNode } from 'types/nodes';
+import { ComponentNode, ProgramNode, ProgramResult, StyleNode, TypeDeclarationNode, UsePath } from 'types/nodes';
 import { ComponentVisitor } from './ComponentVisitor';
 import { StyleVisitor } from './StyleVisitor';
+import { filePathToScope } from 'utils';
+
 
 export class ProgramVisitor extends BaseVisitor<ProgramResult> {
   private readonly components: ComponentNode[] = [];
   private readonly types: TypeDeclarationNode[] = [];
   private readonly styles: StyleNode[] = [];
   private readonly styleVisitor = new StyleVisitor();
+  private readonly fileName: string;
+  private readonly scope: UsePath;
+
+  constructor(fileName: string) {
+    super();
+    this.fileName = fileName;
+    this.scope = filePathToScope(fileName);
+  }
+
 
   visitProgram = (ctx: ProgramContext): ProgramNode => {
     const rootModule = ctx.module_();
@@ -20,9 +31,9 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
     this.visit(rootModule);
 
     return {
-      sourceFile: '',
+      sourceFile: this.fileName,
       sourceCode: '',
-      namespace: [],
+      scope: this.scope,
       uses: [],
       types: this.types,
       components: this.components,
@@ -33,6 +44,7 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
   visitComponent = (ctx: ComponentContext): void => {
     const componentVisitor = new ComponentVisitor();
     const result = componentVisitor.visitComponent(ctx);
+    result.scope = this.scope;
     this.components.push(result);
 
     if (result.properties.length < 1) {

@@ -13,7 +13,7 @@ export * from './uses';
 export type ProgramNode = {
   sourceFile: string;
   sourceCode: string;
-  namespace: UsePath;
+  scope: UsePath;
   uses: UsePath[];
   types: TypeDeclarationNode[];
   components: ComponentNode[];

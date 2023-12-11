@@ -23,6 +23,7 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
       name: symbolToToken(name),
       properties: this.props,
       propsTypeName: undefined,
+      scope: [],
       template: {
         type: 'template',
         children: this.tags,
