@@ -2,12 +2,34 @@ component Toggle {
   prop isOn: boolean = false;
 
   render (
-    <div>
-      <p if={isOn} else="temporalX">This is toggle ON state</p>
-      <p>this is a middle p</p>
-      <p template="temporalX">
-        Now its off
+    <div class={ToggleStyle.toggle}>
+      <p if={isOn} else="temporalX" class={ToggleStyle.toggleText}>
+        This is toggle ON state
       </p>
+      <p>this is a middle p</p>
+      <p template="temporalX" class={ToggleStyle.toggleText}>Now its off</p>
     </div>
   );
+}
+
+style ToggleStyle {
+ .toggle {
+    background: #eee;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+    borderRadius: 3px;
+    fontSize: 14px;
+    color: #555;
+    display: flex;
+    width: 400px;
+    cursor: pointer;
+    justifyContent: spaceBetween;
+  }
+
+  .toggleText {
+   fontWeight: bold;
+   fontSize: 16px;
+   color: #f0f0f0;
+  }
 }

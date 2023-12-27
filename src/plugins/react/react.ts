@@ -90,7 +90,8 @@ export class ReactPlugin {
 
     const templateTable = this.currentComponent.templateSymbols;
     for (const pair of templateTable.ifElsePairs.values()) {
-      if(pair.areContiguous) continue;
+      const isInProps = properties.some(p => p.name.text === pair.identifierExpResult);
+      if(pair.areContiguous || isInProps) continue;
       printer.appendLine(`const ${pair.identifierExpResult} = ${Writer.writeExpression(pair.expression)};`, 2);
     }
     printer.crlf();

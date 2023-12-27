@@ -8,6 +8,8 @@ export const styleNameMap = new Map<string, string>([
   ['textAlign', 'text-align'],
   ['textDecoration', 'text-decoration'],
   ['textTransform', 'text-transform'],
+  ['borderRadius', 'border-radius'],
+  ['justifyContent', 'justify-content'],
 ]);
 
 export class StyleWriter {
