@@ -4,7 +4,7 @@ component Text {
   render (
     <div class={TextStyle.Container}>
       <p>This is a component that displays text from props</p>
-      <span class={TextStyle.Underline}>{ texto }</span>
+      <span class={TextStyle.Underline}>{ text }</span>
     </div>
   );
 }

@@ -1,0 +1,1 @@
+export { ReactPlugin } from './react';
