@@ -64,7 +64,6 @@ export class ExpressionCheck {
           errors: [
             {
               message: `Unresolved identifier ${identifier.text}`,
-              text: identifier.text,
               column: identifier.column,
               line: identifier.line,
               file: this.fileName,

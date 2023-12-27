@@ -29,11 +29,8 @@ export class TemplateChecker {
     const closeTag = tag.closeTag;
 
     if (closeTag && openTag.text !== closeTag.text) {
-      const max = Math.max(closeTag.end - openTag.start, 100);
-      const textLines = this.program.sourceCode.substring(openTag.start, openTag.start + max);
       this.errorStack.push({
         message: `tag ${openTag.text} is not closed`,
-        text: textLines,
         file: this.program.sourceFile,
         line: openTag.line,
         column: openTag.column,

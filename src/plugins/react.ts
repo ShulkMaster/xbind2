@@ -1,8 +1,9 @@
 import * as N from 'types/nodes';
+import { ConstantExpressionNode, ExpressionKind } from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { ConstantExpressionNode } from 'types/nodes';
 import { ComponentTable, Resolver } from 'scope';
+import { ReturnType } from '../types/nodes/native';
 
 export class ReactPlugin {
   private readonly outDir: string;
@@ -107,7 +108,7 @@ export class ReactPlugin {
   }
 
   private writeTag(tag: N.TagNode, printer: Printer, indent: number): void {
-    const { directives,attributes} = tag;
+    const { directives} = tag;
 
     const ifDirective = directives.find(d => d.kind === 'if');
     const elseDirective = directives.find(d => d.kind === 'else');
@@ -140,13 +141,33 @@ export class ReactPlugin {
       return;
     }
 
-    if(tag.children.length < 1) {
-      printer.append(`<${tag.openTag.text} />`);
-    } else {
-      printer.appendLine(`<${tag.openTag.text}>`, indent);
-      this.writeTemplate(tag.children, printer, indent + 2);
-      printer.appendLine(`</${tag.openTag.text}>`, indent);
+    this.writeAttributes(tag, printer, indent);
+  }
+
+  private writeAttributes(tag: N.TagNode, printer: Printer, indent: number): void {
+    printer.append(`<${tag.openTag.text}`, indent);
+    for (const attr of tag.attributes) {
+      const { name, value } = attr;
+      const attName = name.text === 'class' ? 'className' : name.text;
+      if (!value) {
+        printer.append(` ${attName}`);
+        continue;
+      }
+
+
+      if(value.kind === ExpressionKind.constantExpression && value.primitiveType === ReturnType.String) {
+        printer.append(` ${attName}=${value.token.text}`);
+        continue;
+      }
+
+      printer.append(` ${attName}={${Writer.writeExpression(value)}}`);
     }
+    if(tag.children.length < 1) {
+      printer.appendLine(' />');
+    }
+    printer.appendLine('>');
+    this.writeTemplate(tag.children, printer, indent + 2);
+    printer.appendLine(`</${tag.closeTag?.text}>`, indent);
   }
 
   private writeIfPair(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {

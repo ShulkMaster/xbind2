@@ -7,6 +7,7 @@ import { ParseErrorListener } from './ParseErrorListener';
 import { Crossbind } from './Crossbind';
 import { Resolver } from 'scope/Resolver';
 import { ReactPlugin, VuePlugin } from 'plugins';
+import { TemplateReplacer } from './TemplateReplacer';
 
 export * from './Crossbind';
 
@@ -32,8 +33,10 @@ export function compile(source: string, option: CompileOptions): void {
   const visitedUnits = parseUnits.map(visitHaibt);
   const resolver = new Resolver();
   const crossBind = new Crossbind(resolver);
+  const replacer = new TemplateReplacer(resolver);
 
   visitedUnits.forEach(unit => resolver.registerUnit(unit));
+  visitedUnits.forEach(unit => replacer.replaceStyles(unit.program));
   visitedUnits.forEach(unit => crossBind.check(unit.program));
   if (crossBind.errors.length > 0) {
     Logger.compileErrors(crossBind.errors);
@@ -69,6 +72,7 @@ export function parseHaibt(sourceFile: string): ParseUnit {
 function visitHaibt(unit: ParseUnit): VisitedUnit {
   const visitor = new ProgramVisitor(unit.fileName);
   const result = visitor.visitProgram(unit.program);
+  Logger.debug(result);
   return {
     program: result,
     source: unit.source,

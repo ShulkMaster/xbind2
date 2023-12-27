@@ -47,10 +47,8 @@ export class Crossbind {
       const type = validProp.result;
       if (typeAnnotation.primitive) {
         if (this.checkPrimitiveType(typeAnnotation, type)) {
-          const lineText = p.sourceCode.substring(property.start, prop.semicolon.end);
           this.errors.push({
             message: `type ${type} is not assignable to ${typeAnnotation.name}`,
-            text: lineText,
             file: p.sourceFile,
             column: property.column,
             line: property.line,
@@ -58,10 +56,8 @@ export class Crossbind {
         }
       } else {
         if (this.checkType(typeAnnotation, type)) {
-          const lineText = p.sourceCode.substring(property.start, prop.semicolon.end);
           this.errors.push({
             message: `type ${type} is not assignable to ${typeAnnotation.typeName.text}`,
-            text: lineText,
             file: p.sourceFile,
             column: property.column,
             line: property.line,

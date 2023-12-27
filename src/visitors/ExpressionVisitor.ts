@@ -299,6 +299,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
         kind: ExpressionKind.PostfixExpression,
         primary: {} as N.ExpressionResult,
         operator: symbolToToken(operator.symbol),
+        member: undefined,
         call: undefined,
         indexed: undefined,
         follow,
@@ -310,12 +311,9 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       const identifier = ctx.Identifier();
       return {
         kind: ExpressionKind.PostfixExpression,
-        primary: {
-          kind: ExpressionKind.PrimaryExpression,
-          identifier: symbolToToken(identifier.symbol),
-          groupExpression: undefined,
-        },
+        primary: {} as N.ExpressionResult,
         operator: undefined,
+        member: symbolToToken(identifier.symbol),
         call: undefined,
         indexed: undefined,
         follow,
@@ -329,6 +327,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
         kind: ExpressionKind.PostfixExpression,
         primary: {} as N.ExpressionResult,
         operator: undefined,
+        member: undefined,
         call: [symbolToToken(open.symbol), symbolToToken(close)],
         indexed: undefined,
         follow,
@@ -344,6 +343,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       primary: {} as N.ExpressionResult,
       operator: undefined,
       call: undefined,
+      member: undefined,
       indexed: {
         open: symbolToToken(openIndex.symbol),
         index: expressionNode,

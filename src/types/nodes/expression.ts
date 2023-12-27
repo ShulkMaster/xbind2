@@ -96,6 +96,7 @@ export type PostfixExpressionNode = {
   primary: ExpressionResult;
   operator: Token | undefined;
   call: [Token, Token] | undefined;
+  member: Token | undefined;
   indexed: {
     open: Token;
     index: ExpressionResult;

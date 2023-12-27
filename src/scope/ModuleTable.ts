@@ -6,15 +6,20 @@ export class ModuleTable {
   public readonly scope: UsePath;
   public readonly components = new Map<string, ComponentTable>();
   public readonly styles = new Map<string, StyleTable>();
-
+  private readonly scopeName: string;
 
   constructor(scope: UsePath) {
     this.scope = scope;
+    this.scopeName = scope.join('.');
+  }
+
+  private fqdn(name: string): string {
+    return `${this.scopeName}.${name}`;
   }
 
   registerProgram(program: ProgramNode): void {
     for (const component of program.components) {
-      const fqName = [...this.scope, component.name.text].join('.');
+      const fqName = this.fqdn(component.name.text);
       this.components.set(fqName, new ComponentTable(component));
     }
 
@@ -24,5 +29,10 @@ export class ModuleTable {
       table.registerStyle(style);
       this.styles.set(fqName.join('.'), table);
     }
+  }
+
+  public getLocalStyle(name: string): StyleTable | undefined {
+    const searchName = this.fqdn(name);
+    return this.styles.get(searchName);
   }
 }

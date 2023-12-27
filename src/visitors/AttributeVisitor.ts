@@ -13,7 +13,8 @@ export class AttributeVisitor extends BaseVisitor<N.AttributeVisit> {
     let current = ctx;
     const nodes: N.TagProperty[] = [];
     while (current?.getChildCount()) {
-      this.visitAttribute(current.attribute());
+      const result = this.visitAttribute(current.attribute());
+      nodes.push(result);
       current = current.attributes();
     }
     return nodes;

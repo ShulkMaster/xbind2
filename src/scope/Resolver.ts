@@ -25,6 +25,11 @@ export class Resolver {
     return undefined;
   }
 
+  public getModule(scope: UsePath): ModuleTable | undefined {
+    const scopeString = scope.join('.');
+    return this.modules.get(scopeString);
+  }
+
   public resolve(scope: UsePath, identifier: string): TypeRefSymbol | ReturnType | undefined {
     const inComponent = this.resolveInComponents(scope, identifier);
     if (inComponent) {
