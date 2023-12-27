@@ -7,7 +7,6 @@ component Toggle {
       <p>this is a middle p</p>
       <p template="temporalX">
         Now its off
-        <span>and this is a span</span>
       </p>
     </div>
   );
