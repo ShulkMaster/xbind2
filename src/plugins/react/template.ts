@@ -1,8 +1,8 @@
 import { ComponentTable, Resolver } from 'scope';
 import { Printer, Writer } from 'utils';
 import * as N from 'types/nodes';
-import { ConstantExpressionNode, ExpressionKind } from 'types/nodes';
-import { ReturnType } from '../../types/nodes/native';
+import { ConstantExpressionNode, ExpressionKind, TagNode } from 'types/nodes';
+import { ReturnType } from 'types/nodes/native';
 
 export class Template {
   private readonly resolver: Resolver;
@@ -23,9 +23,9 @@ export class Template {
       return;
     }
 
-    const hasMultiRoot = template.children.length > 1;
+    const shouldFragment = this.shouldUseFragment();
     printer.append('return ', 2);
-    if(hasMultiRoot) {
+    if(shouldFragment) {
       printer.appendLine('(');
       printer.appendLine('<>', 4);
       this.writeTemplate(template.children, printer, 6);
@@ -38,9 +38,36 @@ export class Template {
     printer.appendLine(';');
   }
 
+  private shouldUseFragment(): boolean {
+    const children = this.compNode.template.children;
+    if(children.length > 2) {
+      return true;
+    }
+
+    if(children.length === 2) {
+      const directives = children[0].directives;
+      const hasIf = directives.some(d => d.kind === 'if');
+      const hasElse = directives.some(d => d.kind === 'else');
+      const hasTemplate = children[1].directives.some(d => d.kind === 'template');
+      return !(hasIf && hasElse && hasTemplate);
+    }
+
+    return children.length !== 1;
+  }
+
   private isRootTag(tag: N.ChildNode): boolean {
-    if(this.compNode.template.children.length > 1) {
+    const children = this.compNode.template.children;
+    if(children.length > 2) {
       return false;
+    }
+
+    if(children.length === 2) {
+      const directives = children[0].directives;
+      const hasIf = directives.some(d => d.kind === 'if');
+      const hasElse = directives.some(d => d.kind === 'else');
+      const hasTemplate = children[1].directives.some(d => d.kind === 'template');
+      const hasSignature = hasIf && hasElse && hasTemplate;
+      return hasSignature && children.includes(tag as TagNode);
     }
 
     return this.compNode.template.children[0] === tag;
@@ -76,7 +103,9 @@ export class Template {
       return;
     }
 
-    printer.append(`<${tag.openTag.text}`);
+    const isInRoot = this.isRootTag(tag);
+    const identFor = isInRoot ? indent : 0;
+    printer.append(`<${tag.openTag.text}`, identFor);
     this.writeAttributes(tag, printer);
     printer.append(' />');
   }
@@ -91,13 +120,12 @@ export class Template {
 
     if (templateDirective) {
       const exp = templateDirective.value as ConstantExpressionNode;
-      //this.writeElseTemplate(exp.token.text, tag, printer, indent);
+      this.writeElseTemplate(exp.token.text, tag, printer, indent + 2);
       return;
     }
 
     if (elseDirective && ifDirective) {
-      const exp = elseDirective.value as ConstantExpressionNode;
-      //this.writeIfPair(exp.token.text, tag, printer, indent);
+      this.writeIfPair(tag, printer, indent);
       return;
     }
 
@@ -115,7 +143,7 @@ export class Template {
       return;
     }
 
-    if(isRootTag) {
+    if (isRootTag) {
       printer.appendLine('(');
     }
     printer.append(`<${tag.openTag.text}`, indent);
@@ -129,7 +157,7 @@ export class Template {
       printer.appendLine(' />');
     }
 
-    if(isRootTag) {
+    if (isRootTag) {
       printer.append(')', indent - 2);
     }
   }
@@ -143,13 +171,72 @@ export class Template {
         continue;
       }
 
-
-      if(value.kind === ExpressionKind.constantExpression && value.primitiveType === ReturnType.String) {
+      if (value.kind === ExpressionKind.constantExpression && value.primitiveType === ReturnType.String) {
         printer.append(` ${attName}=${value.token.text}`);
         continue;
       }
 
       printer.append(` ${attName}={${Writer.writeExpression(value)}}`);
     }
+  }
+
+  private writeIfPair(tag: N.TagNode, printer: Printer, indent: number): void {
+    const directiveElse = tag.directives.find(d => d.kind === 'else')!;
+    const templateName = (directiveElse.value as ConstantExpressionNode).token.text;
+    const pair = this.comp.templateSymbols.ifElsePairs.get(templateName);
+
+    if (!pair) {
+      throw new Error(`Template pair ${templateName} not found`);
+    }
+
+    const isRootTag = this.isRootTag(tag);
+    if (pair.areContiguous) {
+      const expression = Writer.writeExpression(pair.expression);
+      if (isRootTag) {
+        printer.append(`${expression} ? `);
+        this.writeConditionalTag(tag, printer, indent);
+        printer.appendLine(' :',);
+      } else {
+        printer.append(`{${expression} ? `, indent);
+        this.writeConditionalTag(tag, printer, indent + 2);
+        printer.appendLine(' :',);
+        printer.append('', indent);
+      }
+    }
+
+    // printer.append(`{${pair.identifierExpResult} && `, indent);
+    // if(tag.children.length < 1) {
+    //   printer.append(`<${tag.openTag.text} />`);
+    // } else {
+    //   printer.appendLine('(');
+    //   printer.appendLine(`<${tag.openTag.text}>`, indent + 2);
+    //   this.writeTemplate(tag.children, printer, indent + 4);
+    //   printer.appendLine(`</${tag.openTag.text}>`, indent + 2);
+    //   printer.appendLine(')}', indent);
+    // }
+  }
+
+  private writeElseTemplate(templateName: string, tag: N.TagNode, printer: Printer, indent: number): void {
+    const pair = this.comp.templateSymbols.ifElsePairs.get(templateName);
+    if (!pair) {
+      throw new Error(`Template pair ${templateName} not found`);
+    }
+
+    const isInRoot =  this.isRootTag(tag);
+    if(pair.areContiguous) {
+      if(isInRoot) {
+        printer.append('', indent - 4);
+      }
+      this.writeConditionalTag(tag, printer, indent);
+      if(!isInRoot) {
+        printer.append('}');
+        printer.crlf();
+      }
+      return;
+    }
+
+    printer.append(`{!${pair.identifierExpResult} && `, indent);
+    this.writeConditionalTag(tag, printer, indent + 2);
+    printer.append('}');
   }
 }
