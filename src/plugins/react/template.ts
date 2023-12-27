@@ -227,7 +227,7 @@ export class Template {
       if(isInRoot) {
         printer.append('', indent - 4);
       }
-      this.writeConditionalTag(tag, printer, indent);
+      this.writeConditionalTag(tag, printer, isInRoot ? indent - 2 : indent);
       if(!isInRoot) {
         printer.append('}');
         printer.crlf();
