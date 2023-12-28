@@ -74,15 +74,12 @@ export class StyleChecker {
   }
 
   private validateRule(rule: RuleNode, definition: StyleRule): void {
-    const { shorthand} = definition;
     const args = definition.arguments;
     const ruleName = rule.identifier.text;
     const values = rule.value;
 
     if (args.length === 0) {
-      for (const shorthandRule of Object.values(shorthand)) {
-        // other validation function
-      }
+      this.validateShorthand(rule, definition);
       return;
     }
 
@@ -111,7 +108,6 @@ export class StyleChecker {
             break;
           }
         }
-
         if(!valid) {
           const error = this.getInvalidError(rule, alternatives, value);
           this.errors.push(error);
@@ -125,6 +121,38 @@ export class StyleChecker {
         this.errors.push(error);
       }
     }
+  }
+
+  private validateShorthand(rule: RuleNode, definition: StyleRule): void {
+    const shorts = definition.shorthand;
+
+    for (const short of Object.values(shorts)) {
+      const args = short.arguments;
+      for (const arg of args) {
+        const values = rule.value;
+        for (const value of values) {
+          const alts = arg.alternatives;
+
+          if(Array.isArray(alts)) {
+            for (const alternative of Object.values(arg.alternatives)) {
+              if (this.validateValue(rule.value[0], alternative)) {
+                return;
+              }
+            }
+          } else {
+            if(this.validateValue(value, alts)) {
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    this.errors.push({
+      line: rule.identifier.line,
+      column: rule.identifier.column,
+      message: `No alternative found for '${rule.identifier.text}', invalid sequence of arguments at ${this.stack.join('->')}`,
+    });
   }
 
   private validateValue(value: StyleValueNode, alternative: CssRules): boolean {

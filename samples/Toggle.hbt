@@ -14,7 +14,7 @@ component Toggle {
 
 style ToggleStyle {
  .toggle {
-    background: #eee;
+    backgroundColor: #eee;
     border: 1px solid #ccc;
     padding: 10px;
     margin: 10px;
