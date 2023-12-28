@@ -40,7 +40,7 @@ export function compile(source: string, option: CompileOptions): void {
   visitedUnits.forEach(unit => crossBind.check(unit.program));
   if (crossBind.errors.length > 0) {
     Logger.compileErrors(crossBind.errors);
-    Logger.error(`typechecking failure, found ${crossBind.errors.length} errors`);
+    Logger.error(`Compilation failure, found ${crossBind.errors.length} errors`);
     return;
   }
 

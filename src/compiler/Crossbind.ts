@@ -6,6 +6,7 @@ import { TypeRefSymbol } from 'types/symbol';
 import { ReturnType } from 'types/nodes/native';
 import { TemplateChecker } from './TemplateChecker';
 import { Resolver } from 'scope/Resolver';
+import { StyleChecker } from './StyleChecker';
 
 export class Crossbind {
   public readonly errors: CompileError[] = [];
@@ -16,10 +17,21 @@ export class Crossbind {
   }
 
   public check(program: N.ProgramNode): void {
-    const {scope, uses, components, types} = program;
-    for (const component of components) {
-      this.checkComponent(component, program);
-    }
+    const {scope, uses, components, types, styles, sourceFile} = program;
+    // for (const component of components) {
+    //   this.checkComponent(component, program);
+    // }
+
+    const checker = new StyleChecker();
+    checker.check(styles);
+    checker.getErrors().forEach(e => {
+      this.errors.push({
+        message: e.message,
+        file: sourceFile,
+        column: e.column,
+        line: e.line,
+      });
+    });
   }
 
   private checkComponent(comp: N.ComponentNode, p: ProgramNode): void {
