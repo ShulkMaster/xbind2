@@ -1,16 +1,7 @@
 import { Printer } from './Printer';
-import { ClassNode, RuleNode, StyleNode, StyleValueNode } from 'types/nodes';
-
-export const styleNameMap = new Map<string, string>([
-  ['backgroundColor', 'background-color'],
-  ['fontSize', 'font-size'],
-  ['fontWeight', 'font-weight'],
-  ['textAlign', 'text-align'],
-  ['textDecoration', 'text-decoration'],
-  ['textTransform', 'text-transform'],
-  ['borderRadius', 'border-radius'],
-  ['justifyContent', 'justify-content'],
-]);
+import { ClassNode, OrArray, RuleNode, StyleNode, StyleValueNode } from 'types/nodes';
+import { styleRules } from 'bcl/css';
+import { CssArgument, CssRule, CssRules, StyleRule } from 'bcl/css/types';
 
 export class StyleWriter {
   private readonly p: Printer;
@@ -31,10 +22,10 @@ export class StyleWriter {
   }
 
   writeClass(styleClass: ClassNode, pad: number): void {
-    const { name, subClasses, modifiers, rules } = styleClass;
+    const {name, subClasses, modifiers, rules} = styleClass;
     const prefix = this.stack.join(' ');
 
-    if(prefix) {
+    if (prefix) {
       this.p.appendLine(`${prefix} .${name.text} {`, pad);
     } else {
       this.p.appendLine(`.${name.text} {`, pad);
@@ -56,17 +47,18 @@ export class StyleWriter {
 
   writeRule(rule: RuleNode, depth: number): void {
     const ruleName = rule.identifier.text;
-    const cssName = styleNameMap.get(ruleName) ?? ruleName;
+    const map = styleRules.get(ruleName);
+    const cssName = map?.alias ?? ruleName;
     this.p.append(`${cssName}:`, depth);
 
     for (const value of rule.value) {
       this.p.append(' ');
-      this.writeValue(value);
+      this.writeValue(value, map);
     }
     this.p.appendLine(';');
   }
 
-  writeValue(value: StyleValueNode): void {
+  writeValue(value: StyleValueNode, style: StyleRule | undefined): void {
     switch (value.type) {
       case 'hex':
         this.p.append(value.value.text);
@@ -75,8 +67,55 @@ export class StyleWriter {
         this.p.append(`${value.value.text}${value.unit?.text}`);
         break;
       case 'identifier':
-        this.p.append(value.token.text);
+        this.p.append(this.findIdentifierName(value.token.text, style));
         break;
     }
+  }
+
+  findIdentifierName(identifier: string, style: StyleRule | undefined): string {
+    if (!style) {
+      return identifier;
+    }
+
+    if (style.arguments.length < 1) {
+      for (const rule of Object.values(style.shorthand)) {
+        const name = this.findNameInArgs(identifier, rule.arguments);
+        if (name) {
+          return name;
+        }
+      }
+      return identifier;
+    }
+
+    const name = this.findNameInArgs(identifier, style.arguments);
+    return name ?? identifier;
+  }
+
+  findNameInArgs(identifier: string, args: CssArgument[]): string | undefined {
+    for (const arg of args) {
+      const name = this.findArgName(identifier, arg.alternatives);
+      if (name) {
+        return name;
+      }
+    }
+  }
+
+  findArgName(identifier: string, rules: OrArray<CssRules>): string | undefined {
+    if(Array.isArray(rules)) {
+      for (const rule of rules) {
+        const name = this.findArgName(identifier, rule);
+        if (name) {
+          return name;
+        }
+      }
+      return undefined;
+    }
+
+    if(rules.kind !== CssRule.cssIdentifier) {
+      return undefined;
+    }
+
+    const option = rules.options.find(o => o.name === identifier);
+    return option?.alias;
   }
 }
