@@ -1,12 +1,9 @@
 import * as N from 'types/nodes';
-import { ConstantExpressionNode, ExpressionKind } from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
 import { ComponentTable, Resolver } from 'scope';
-import { ReturnType } from 'types/nodes/native';
 import { StyleWriter } from 'utils/StyleWriter';
 import { Template } from './template';
-import { pTag } from '../../bcl/tags';
 
 export class ReactPlugin {
   private readonly outDir: string;

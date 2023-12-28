@@ -15,3 +15,9 @@ export type CompileError = {
   column: number;
   file: string;
 };
+
+export type SimpleError = {
+  message: string;
+  line: number;
+  column: number;
+};

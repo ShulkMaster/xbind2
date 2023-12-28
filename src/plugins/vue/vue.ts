@@ -1,8 +1,10 @@
 import * as N from 'types/nodes';
+import { ConstantExpressionNode, DirectiveType, ExpressionKind, TypeDeclarationNode } from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { ConstantExpressionNode, DirectiveType, TypeDeclarationNode } from 'types/nodes';
-import { TemplateSymbols, Resolver } from 'scope';
+import { Resolver, TemplateSymbols } from 'scope';
+import { ReturnType } from '../../types/nodes/native';
+import { StyleWriter } from '../../utils/StyleWriter';
 
 export class VuePlugin {
   public readonly outDir: string;
@@ -34,7 +36,7 @@ export class VuePlugin {
 
   public writeProgram(program: N.ProgramNode): void {
     const { components } = program;
-    const baseDir = this.outDir + program.scope.join(path.sep);
+    const baseDir = path.join(this.outDir, ...program.scope);
     const printer = new Printer();
 
     for (const type of program.types) {
@@ -51,17 +53,17 @@ export class VuePlugin {
 
   private writeComponent(component: N.ComponentNode, program: N.ProgramNode, printer: Printer): void {
     const imports = this.typesToImport(program.types);
-    const baseDir = this.outDir + program.scope.join(path.sep);
-    makeDirs(baseDir);
+    const baseDir = path.join(this.outDir, ...program.scope);
     this.t = new TemplateSymbols(component.template);
     this.t.fill();
 
     this.writeScript(component, imports, printer);
     printer.crlf();
     this.writeTemplate(component, printer);
+    this.writeStyles(program.styles, printer);
     const fileName = this.formatName(component.name.text);
-    const filePath = baseDir + fileName + '.vue';
-    printer.flushToFile(filePath);
+    const typeFilename = [baseDir, fileName].join(path.sep);
+    printer.flushToFile(typeFilename + '.vue');
   }
 
   private writeScript(component: N.ComponentNode, imports: string[], printer: Printer): void {
@@ -108,6 +110,7 @@ export class VuePlugin {
             this.writeAttributes(child.attributes, printer);
           } else {
             printer.append(`<${child.openTag.text}`, indent);
+            this.writeDirectives(child.directives, printer);
             this.writeAttributes(child.attributes, printer);
             printer.appendLine('>', 0);
             this.writeTemplateNodes(child.children, printer, indent + 2);
@@ -124,34 +127,45 @@ export class VuePlugin {
     }
   }
 
-  private writeAttributes(attributes: N.TagProperty[], printer: Printer): void {
+  private writeAttributes(attributes: N.AttributeNode[], printer: Printer): void {
     for (const attribute of attributes) {
-      switch (attribute.type) {
-        case 'attribute':
-          Logger.warn('Attribute not implemented');
-          break;
-        case 'directive':
-          this.writeDirective(attribute, printer);
-          break;
+      const exp = attribute.value;
+
+      if (!exp) {
+        printer.append(` ${attribute.name.text}`);
+        continue;
       }
+
+      if (exp.kind === ExpressionKind.constantExpression) {
+        const returnType = exp.primitiveType;
+        if (returnType === ReturnType.String) {
+          printer.append(` ${attribute.name.text}=${exp.token.text}`);
+          continue;
+        }
+      }
+
+      const value = Writer.writeExpression(exp);
+      printer.append(` :${attribute.name.text}="${value}"`);
     }
   }
 
-  private writeDirective(directive: N.DirectiveNode, printer: Printer): void {
-    const valueStr = Writer.writeExpression(directive.value);
-    switch (directive.kind) {
-      case DirectiveType.if:
+  private writeDirectives(directives: N.DirectiveNode[], printer: Printer): void {
+    for (const d of directives) {
+      const valueStr = Writer.writeExpression(d.value);
+      if (d.kind === DirectiveType.if) {
         printer.append(` v-if="${valueStr}"`);
-        break;
-      case DirectiveType.else:
-        break;
-      case DirectiveType.switch:
-        break;
-      case DirectiveType.case:
-        break;
-      case DirectiveType.template:
-        this.writeTemplateDirective(directive, printer);
-        break;
+      }
+
+      if(d.kind === DirectiveType.else) {
+        continue;
+      }
+
+      if(d.kind === DirectiveType.template) {
+        this.writeTemplateDirective(d, printer);
+        continue;
+      }
+
+      Logger.info(`Unsupported directive: ${d.kind}`);
     }
   }
 
@@ -177,5 +191,20 @@ export class VuePlugin {
     } else {
       return `The${name}`;
     }
+  }
+
+  private writeStyles(styles: N.StyleNode[], printer: Printer) {
+    if(styles.length < 1) return;
+
+    printer.crlf();
+    const stylePrinter = new Printer();
+    const writer = new StyleWriter(stylePrinter);
+    for (const style of styles) {
+      writer.writeStyle(style, 0);
+    }
+    const styleText = writer.collectStyleText();
+    printer.appendLine('<style scoped>', 0);
+    printer.append(styleText, 0);
+    printer.appendLine('</style>', 0);
   }
 }

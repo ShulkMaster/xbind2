@@ -49,7 +49,6 @@ export class StyleWriter {
     this.stack.push(`.${name.text}`);
     for (const subStyle of subClasses) {
       this.writeClass(subStyle, pad);
-      this.p.crlf();
     }
 
     this.stack.pop();

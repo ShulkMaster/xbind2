@@ -86,7 +86,7 @@ export class TemplateSymbols {
     }
 
     const tagIfFollow = tagGroup[tagIfIndex + 1];
-    if (tagIfFollow.type === 'tag') {
+    if (tagIfFollow?.type === 'tag') {
       const directives = tagIfFollow.directives;
       const templateDirective = directives.find(d => d.kind === 'template');
 
@@ -101,7 +101,7 @@ export class TemplateSymbols {
     return false;
   }
 
-  private findParentTemplate(tagIf: TagNode, roots: ChildNode[]): TagNode {
+  private findParentTemplate(tagIf: TagNode, roots: ChildNode[]): TagNode | TemplateNode {
     for (const root of roots) {
       if (root.type !== 'tag') {
         continue;
@@ -118,7 +118,7 @@ export class TemplateSymbols {
       }
     }
 
-    throw new Error(`Could not find parent of tag: ${tagIf.openTag.text}`);
+    return this.template;
   }
 
 }
