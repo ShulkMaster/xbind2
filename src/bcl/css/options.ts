@@ -1,6 +1,7 @@
 import { CssIdentifierOption } from './types';
 
-const unset: CssIdentifierOption = { name: 'unset' };
+export const unset: CssIdentifierOption = { name: 'unset' };
+export const auto: CssIdentifierOption = { name: 'auto' };
 
 export const flexAlignOptions: CssIdentifierOption[] = [
   { name: 'start' },
