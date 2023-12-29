@@ -3,8 +3,8 @@ import { ConstantExpressionNode, DirectiveType, ExpressionKind, TypeDeclarationN
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
 import { Resolver, TemplateSymbols } from 'scope';
-import { ReturnType } from '../../types/nodes/native';
-import { StyleWriter } from '../../utils/StyleWriter';
+import { ReturnType } from 'types/nodes/native';
+import { StyleWriter } from 'utils/StyleWriter';
 
 export class VuePlugin {
   public readonly outDir: string;

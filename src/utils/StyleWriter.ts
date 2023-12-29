@@ -1,7 +1,8 @@
 import { Printer } from './Printer';
-import { ClassNode, OrArray, RuleNode, StyleNode, StyleValueNode } from 'types/nodes';
+import { ClassNode, ModifierNode, OrArray, RuleNode, StyleNode, StyleValueNode } from 'types/nodes';
 import { styleRules } from 'bcl/css';
 import { CssArgument, CssRule, CssRules, StyleRule } from 'bcl/css/types';
+import { Token } from 'types/token';
 
 export class StyleWriter {
   private readonly p: Printer;
@@ -24,11 +25,12 @@ export class StyleWriter {
   writeClass(styleClass: ClassNode, pad: number): void {
     const {name, subClasses, modifiers, rules} = styleClass;
     const prefix = this.stack.join(' ');
+    const mods = this.writeModifiers(name, modifiers);
 
     if (prefix) {
-      this.p.appendLine(`${prefix} .${name.text} {`, pad);
+      this.p.appendLine(`${prefix} .${name.text}${mods} {`, pad);
     } else {
-      this.p.appendLine(`.${name.text} {`, pad);
+      this.p.appendLine(`.${name.text}${mods} {`, pad);
     }
 
     for (const rule of rules) {
@@ -37,12 +39,33 @@ export class StyleWriter {
     this.p.appendLine('}', pad);
     this.p.crlf();
 
-    this.stack.push(`.${name.text}`);
+    this.stack.push(`.${name.text}${mods}`);
     for (const subStyle of subClasses) {
       this.writeClass(subStyle, pad);
     }
 
     this.stack.pop();
+  }
+
+  writeModifiers(name: Token, mods: ModifierNode[]): string {
+    const result: string[] = [];
+    let lastEnd = name.end;
+
+    for (let i = 0; i < mods.length; i++) {
+      const mod = mods[i];
+      if (mod.modifier === 'gt') {
+        result.push(` > .${mod.name.text}`);
+        continue;
+      }
+
+      if (mod.name.start <= lastEnd + 2) {
+        result.push(`.${mod.name.text}`);
+      } else {
+        result.push(` .${mod.name.text}`);
+      }
+      lastEnd = mod.name.end;
+    }
+    return result.join('');
   }
 
   writeRule(rule: RuleNode, depth: number): void {
@@ -67,6 +90,7 @@ export class StyleWriter {
         this.p.append(`${value.value.text}${value.unit?.text}`);
         break;
       case 'identifier':
+        // todo: optimize this by prefilling a set with all the identifiers
         this.p.append(this.findIdentifierName(value.token.text, style));
         break;
     }

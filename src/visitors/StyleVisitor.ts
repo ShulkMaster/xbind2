@@ -49,16 +49,17 @@ export class StyleVisitor extends BaseVisitor<N.StyleVisit> {
     const modifiers: N.ModifierNode[] = [];
     let current: H.StyleCombineContext= ctx;
 
-    while(current?.getChildCount()) {
-      const modifier = ctx.stlyeModifier();
-      const id = ctx.Identifier();
+    while(current?.getChildCount() > 0) {
+      const modifier = current.stlyeModifier();
+      const id = current.Identifier();
       const gt = modifier.GreaterThan();
 
       if(gt) {
         modifiers.push({
           modifier: 'gt',
-          name: symbolToToken(gt.symbol),
+          name: symbolToToken(id.symbol),
         });
+        current = current.styleCombine();
         continue;
       }
 
