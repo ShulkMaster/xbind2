@@ -2,11 +2,10 @@ import {CssArgument, CssRule, StyleRule} from './types';
 import * as Opt from './options';
 
 const args: CssArgument[] = [{
-  name: 'size',
+  name: 'flow',
   optional: false,
   alternatives: [
-    {kind: CssRule.cssNumber, unitRequired: true},
-    {kind: CssRule.cssIdentifier, options: [Opt.unset, Opt.auto,Opt.initial,Opt.none]},
+    {kind: CssRule.cssIdentifier, options: Opt.overflowOptions},
   ],
 }];
 

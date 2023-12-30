@@ -5,6 +5,15 @@ export const auto: CssIdentifierOption = { name: 'auto' };
 export const initial: CssIdentifierOption = { name: 'initial' };
 export const none: CssIdentifierOption = { name: 'none' };
 
+export const overflowOptions: CssIdentifierOption[] = [
+  { name: 'visible' },
+  { name: 'hidden' },
+  { name: 'scroll' },
+  { name: 'auto' },
+  { name: 'clip' },
+  unset,
+];
+
 export const flexAlignOptions: CssIdentifierOption[] = [
   { name: 'start' },
   { name: 'end' },
