@@ -19,8 +19,6 @@ export const flexAlignOptions: CssIdentifierOption[] = [
   unset,
 ];
 
-
-
 export const bgPositionOptions: CssIdentifierOption[] = [
   { name: 'top' },
   { name: 'right' },
