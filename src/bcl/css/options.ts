@@ -2,6 +2,8 @@ import { CssIdentifierOption } from './types';
 
 export const unset: CssIdentifierOption = { name: 'unset' };
 export const auto: CssIdentifierOption = { name: 'auto' };
+export const initial: CssIdentifierOption = { name: 'initial' };
+export const none: CssIdentifierOption = { name: 'none' };
 
 export const flexAlignOptions: CssIdentifierOption[] = [
   { name: 'start' },
@@ -16,6 +18,8 @@ export const flexAlignOptions: CssIdentifierOption[] = [
   { name: 'spaceEvenly', alias: 'space-evenly' },
   unset,
 ];
+
+
 
 export const bgPositionOptions: CssIdentifierOption[] = [
   { name: 'top' },
