@@ -31,6 +31,16 @@ const flexGrow: StyleRule = {
   shorthand: {},
 };
 
+const flexDirection: StyleRule = {
+    name: 'flexDirection',
+    alias: 'flex-direction',
+    arguments: [{
+        name: 'direction',
+        optional: false,
+        alternatives: [{kind: CssRule.cssIdentifier, options: Opt.flexDirectionOptions}],
+    }],
+    shorthand: {},
+}
 
 const flex: StyleRule = {
   arguments: [],
@@ -39,6 +49,7 @@ const flex: StyleRule = {
     [flexBasis.name]: flexBasis,
     [flexShrink.name]: flexShrink,
     [flexGrow.name]: flexGrow,
+    [flexDirection.name]: flexDirection,
   },
 };
 
@@ -46,5 +57,6 @@ export const flexRules =[
   flex,
   flexBasis,
   flexShrink,
-  flexGrow
+  flexGrow,
+  flexDirection
 ];

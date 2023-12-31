@@ -28,6 +28,26 @@ export const flexAlignOptions: CssIdentifierOption[] = [
   unset,
 ];
 
+export const flexWrapOptions: CssIdentifierOption[] = [
+  { name: 'nowrap' },
+  { name: 'wrap' },
+  { name: 'wrapReverse', alias: 'wrap-reverse' },
+  unset,
+];
+
+export const flexFlowOptions: CssIdentifierOption[] = [
+  { name: 'row' },
+  { name: 'rowReverse', alias: 'row-reverse' },
+  { name: 'column' },
+  { name: 'columnReverse', alias: 'column-reverse' },
+  { name: 'nowrap' },
+  { name: 'wrap' },
+  { name: 'wrapReverse', alias: 'wrap-reverse' },
+  unset,
+];
+
+
+
 export const bgPositionOptions: CssIdentifierOption[] = [
   { name: 'top' },
   { name: 'right' },
@@ -94,4 +114,21 @@ export const decorationPatternOptions: CssIdentifierOption[] = [
   { name: 'groove' },
   { name: 'ridge' },
   unset,
+];
+
+export const flexDirectionOptions: CssIdentifierOption[] = [
+    { name: 'row' },
+    { name: 'rowReverse', alias: 'row-reverse' },
+    { name: 'column' },
+    { name: 'columnReverse', alias: 'column-reverse' },
+    unset,
+];
+
+export const fontFamilyOptions: CssIdentifierOption[] = [
+    { name: 'serif' },
+    { name: 'sansSerif', alias: 'sans-serif' },
+    { name: 'monospace' },
+    { name: 'cursive' },
+    { name: 'fantasy' },
+    unset,
 ];

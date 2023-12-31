@@ -4,6 +4,9 @@ import { marginRules } from './margin';
 import { flexRules } from './flex';
 import {opacityRules} from "./opacity";
 import {overflowRules} from "./overflow";
+import {paddingRules} from "./padding";
+import {fontRules} from "./font";
+import {borderRules} from "./border";
 
 export const styleRules: Map<string, StyleRule> = new Map();
 
@@ -12,6 +15,9 @@ marginRules.forEach(r => styleRules.set(r.name, r));
 flexRules.forEach(r  => styleRules.set(r.name, r));
 opacityRules.forEach(r => styleRules.set(r.name, r));
 overflowRules.forEach(r => styleRules.set(r.name, r));
+paddingRules.forEach(r => styleRules.set(r.name, r));
+fontRules.forEach(r => styleRules.set(r.name, r));
+borderRules.forEach(r => styleRules.set(r.name, r));
 
 styleRules.set('color', {
   name: 'color',
