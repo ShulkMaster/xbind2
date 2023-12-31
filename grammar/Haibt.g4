@@ -90,9 +90,12 @@ postfixFollow:
   PlusPlus postfixFollow
   | MinusMinus postfixFollow
   | Dot Identifier postfixFollow
-  | OParen CParen postfixFollow
+  | OParen argExpList CParen postfixFollow
   | OBracnk expression CBracnk postfixFollow
   | ;
+
+argExpList: expression argExpListFollow | ;
+argExpListFollow: Comma argExpList | ;
 
 primaryExpression: Identifier | constantExpression | OParen expression CParen;
 
