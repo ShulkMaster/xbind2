@@ -1,24 +1,10 @@
 component Text {
-  prop text: string = "Hello World";
+  prop text: string;
 
   render (
-    <div class={TextStyle.Container}>
+    <div>
       <p>This is a component that displays text from props</p>
-      <span class={TextStyle.Underline}>{ text }</span>
+      <span>{ text }</span>
     </div>
   );
-}
-
-style TextStyle {
- .Container {
-    color: #333;
-    fontSize: 14px;
-    padding: 10px;
-
-    .Underline {
-      textDecoration: underline;
-      fontWeight: bold;
-      fontSize: 16px;
-    }
- }
 }

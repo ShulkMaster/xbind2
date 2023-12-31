@@ -1,5 +1,5 @@
 import { CompileError } from './logging';
-import { TypeRefSymbol } from './symbol';
+import { SymbolRef } from './symbol';
 import { ReturnType } from './nodes/native';
 import { ProgramContext } from 'parser/Haibt';
 import { ProgramNode, UsePath } from './nodes';
@@ -7,7 +7,7 @@ import { ProgramNode, UsePath } from './nodes';
 export type ExpressionCheckResult = {
   valid: boolean;
   errors: CompileError[];
-  result: TypeRefSymbol | ReturnType;
+  result: SymbolRef | ReturnType;
 };
 
 export type ParseUnit = {

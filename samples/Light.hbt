@@ -1,0 +1,5 @@
+component Light {
+  prop msg: string = msg.concat("xd",  5);
+
+  render ();
+}

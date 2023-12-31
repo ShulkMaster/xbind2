@@ -1,17 +1,73 @@
-import { NativePropertySymbol, NativeFunctionSymbol, NativeSymbol, NativeSymbolKind } from 'types/symbol';
-import { ReturnType } from '../types/nodes/native';
+import { HSymbol } from 'types/symbol';
+import {
+  ArgState,
+  createMethodFor,
+  NativeDataType,
+  addMember,
+  nativeBool,
+  nativeNumber,
+  nativeString
+} from './lib';
 
-const prefix = (s: string) => `string.${s}`;
+addMember(nativeString, 'length', {readonly: true, ref: NativeDataType.Number});
 
-const length: NativePropertySymbol = {
-  kind: NativeSymbolKind.property,
-  name: prefix('length'),
-  type: {
-    type: 'typeRef',
-    name: ReturnType.Number,
+const concat = createMethodFor(nativeString, 'concat', [{
+  name: 'strings',
+  variadic: true,
+  array: true,
+  type: nativeString,
+  state: ArgState.Optional,
+}], nativeString);
+
+const includes = createMethodFor(nativeString, 'includes', [
+  {
+    name: 'searchString',
+    type: nativeString,
+    state: ArgState.Required,
   },
-  readonly: true,
-};
+  {
+    name: 'position',
+    type: nativeNumber,
+    state: ArgState.Optional,
+  }
+], nativeBool);
+
+/*
+slice: {
+  name: 'slice',
+    scope: [],
+    fqnd: 'string.slice',
+    readonly: true,
+    public: true,
+},
+split: {
+  name: 'split',
+    scope: [],
+    fqnd: 'string.split',
+    readonly: true,
+    public: true,
+},
+toLowerCase: {
+  name: 'toLowerCase',
+    scope: [],
+    fqnd: 'string.toLowerCase',
+    readonly: true,
+    public: true,
+},
+toUpperCase: {
+  name: 'toUpperCase',
+    scope: [],
+    fqnd: 'string.toUpperCase',
+    readonly: true,
+    public: true,
+},
+trim: {
+  name: 'trim',
+    scope: [],
+    fqnd: 'string.trim',
+    readonly: true,
+    public: true,
+},
 
 const concat: NativeFunctionSymbol = {
   kind: NativeSymbolKind.function,
@@ -149,14 +205,16 @@ const trim: NativeFunctionSymbol = {
   },
   args: [],
 };
+*/
 
-export const stringSymbol: NativeSymbol[] = [
-  length,
+export const stringSymbols: HSymbol[] = [
+  nativeString,
   concat,
   includes,
-  slice,
-  split,
-  toLowerCase,
-  toUpperCase,
-  trim,
+  // slice,
+  // split,
+  // toLowerCase,
+  // toUpperCase,
+  // trim,
 ];
+

@@ -321,14 +321,19 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
     }
 
     const open = ctx.OParen();
-    if(open) {
+    if (open) {
       const close = ctx.CParen().symbol;
+      const argList = this.visitArgExpListInt(ctx.argExpList());
       return {
         kind: ExpressionKind.PostfixExpression,
         primary: {} as N.ExpressionResult,
         operator: undefined,
         member: undefined,
-        call: [symbolToToken(open.symbol), symbolToToken(close)],
+        call: {
+          open: symbolToToken(open.symbol),
+          arguments: argList,
+          close: symbolToToken(close),
+        },
         indexed: undefined,
         follow,
       };
@@ -351,6 +356,21 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       },
       follow,
     };
+  };
+
+  visitArgExpListInt = (ctx: H.ArgExpListContext): N.ExpressionResult[] => {
+    const list : N.ExpressionResult[] = [];
+    let arg = ctx;
+
+
+    while (arg?.getChildCount() > 0) {
+      const expression = arg.expression();
+      const argExp = this.visitExpression(expression);
+      list.push(argExp);
+      arg = arg.argExpListFollow().argExpList();
+    }
+
+    return list;
   };
 
   visitPrimaryExpression = (ctx: H.PrimaryExpressionContext): N.ExpressionResult => {

@@ -1,78 +1,37 @@
-import { Token } from './token';
-import { NativeTag, ReturnType } from './nodes/native';
+import { UsePath } from './nodes';
 
-export const enum NativeSymbolKind {
-  function = 'function',
-  property = 'property',
-  tag = 'tag',
-}
-
-export type TypeRefSymbol = {
-  type: 'typeRef';
-  name: Token | string;
-};
-
-export type TagRefSymbol = {
-  type: 'tagRef';
-  name: Token | string;
-};
-
-export type NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function;
-  name: string;
-  returnType: TypeRefSymbol | ReturnType;
-  varArgs: boolean;
-  args: { name: string; type: TypeRefSymbol; array: boolean }[];
-};
-
-export type NativePropertySymbol = {
-  kind: NativeSymbolKind.property;
-  name: string;
-  type: TypeRefSymbol;
+export type SymbolOps = {
   readonly: boolean;
+  public: boolean;
 };
 
-export type NativeTagSymbol = {
-  kind: NativeSymbolKind.tag;
-  name: NativeTag;
-  children: boolean;
-  events: {
+export type SymbolRef = {
+  fqnd: string;
+  name: string;
+  scope: UsePath;
+  ref: string;
+} & SymbolOps;
+
+export type Callable = {
+  returnType: SymbolRef;
+  args: {
     [key: string]: {
-      type: string;
-      returnType: TypeRefSymbol;
-      args: { name: string; type: TypeRefSymbol }[];
+      name: string;
+      type: SymbolRef;
+      variadic: boolean;
+      array: boolean;
     };
   };
+};
+
+export type HSymbol = {
+  fqnd: string;
+  name: string;
+  scope: UsePath;
+  callable: Callable | undefined;
+  members: { [key: string]: SymbolRef };
+  methods: { [key: string]: SymbolRef };
   attributes: {
-    [key: string]: {
-      type: TypeRefSymbol;
-    };
-  };
-  methods: {
-    [key: string]: {
-      returnType: TypeRefSymbol;
-      args: { name: string; type: TypeRefSymbol; array: boolean }[];
-    };
-  };
+    [key: string]: SymbolRef;
+  } | undefined;
 };
-
-export type NativeSymbol = NativeFunctionSymbol | NativePropertySymbol | NativeTagSymbol;
-
-type BaseSymbol = {
-  name: Token | string;
-  filePath: string;
-};
-
-export type TypeMember = { [key: string]: TypeRefSymbol };
-
-export type TypeSymbol = {
-  type: 'type';
-  members: TypeMember;
-} & BaseSymbol;
-
-export type ComponentSymbol = {
-  type: 'component';
-  propType: TypeRefSymbol | undefined;
-} & BaseSymbol;
-
-export type HSymbols = TypeSymbol | ComponentSymbol | NativeSymbol;

@@ -91,11 +91,17 @@ export type UnaryExpressionNode = {
   right: ExpressionResult;
 };
 
+export type ArgumentList = {
+  open: Token;
+  arguments: ExpressionResult[];
+  close: Token;
+};
+
 export type PostfixExpressionNode = {
   kind: ExpressionKind.PostfixExpression;
   primary: ExpressionResult;
   operator: Token | undefined;
-  call: [Token, Token] | undefined;
+  call: ArgumentList | undefined;
   member: Token | undefined;
   indexed: {
     open: Token;
