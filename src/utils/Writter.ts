@@ -104,11 +104,7 @@ export class Writer {
   public static castExpression(exp: E.CastExpressionNode): string {
     const typeElement = exp.as;
     const expression = this.writeExpression(exp.left);
-    if (typeElement.primitive) {
-      return `${expression} as ${typeElement.name}`;
-    }
-
-    return `${expression} as ${typeElement.typeName.text}`;
+    return `${expression} as ${typeElement.text}`;
   }
 
   public static multiplicativeExpression(exp: E.MultiplicativeExpressionNode): string {
@@ -159,10 +155,9 @@ export class Writer {
 
   public static ternaryExpression(exp: E.TernaryExpressionNode): string {
     const { trueBranch, falseBranch } = exp;
-    // const conditionExpression = this.writeExpression(condition);
     const trueExp = this.writeExpression(trueBranch);
     const falseExp = this.writeExpression(falseBranch);
-    // return `${conditionExpression} ? ${trueExp} : ${falseExp}`;
     throw new Error('Unsupported expression');
+    // return ` ? ${trueExp} : ${falseExp}`;
   }
 }

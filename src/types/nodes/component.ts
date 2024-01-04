@@ -1,5 +1,4 @@
 import { Token } from 'types/token';
-import { TypeNode } from './types';
 import { TemplateNode } from './template';
 import { ExpressionResult } from './expression';
 import { UsePath } from './uses';
@@ -9,7 +8,7 @@ export type PropertyNode = {
   property: Token;
   name: Token;
   colon: Token;
-  typeAnnotation: TypeNode;
+  typeAnnotation: Token;
   optional: boolean;
   initializer: ExpressionResult | undefined;
   semicolon: Token;

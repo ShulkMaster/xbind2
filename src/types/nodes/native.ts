@@ -1,4 +1,4 @@
-import { TypeRefNode } from './types';
+import { Token } from 'types/token';
 
 export const enum ReturnType {
   Void = 'void',
@@ -58,13 +58,13 @@ export enum NativeTag {
 
 export type TagProperty = {
   name: string;
-  returnType: ReturnType | TypeRefNode;
+  returnType: ReturnType | Token;
 }
 
 export type TagEvent = {
   name: string;
   type: EvenSource;
-  returnType: ReturnType | TypeRefNode;
+  returnType: ReturnType | Token;
   args: EventArgs[];
 };
 
@@ -78,11 +78,3 @@ export type BaseTag = {
     [key: string]: TagProperty;
   };
 };
-
-export type NativeMethod = {
-  name: string;
-  returnType: ReturnType | TypeRefNode;
-  args: (EventArgs | TypeRefNode)[];
-};
-
-

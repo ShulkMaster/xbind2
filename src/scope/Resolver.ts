@@ -1,15 +1,33 @@
-import { TypeRefSymbol } from 'types/symbol';
 import { GlobalTable } from './GlobalTable';
-import { ReturnType } from 'types/nodes/native';
 import { VisitedUnit } from 'types/crossbind';
 import { ModuleTable } from './ModuleTable';
-import { UsePath } from '../types/nodes';
-import { TemplateSymbols } from './TemplateSymbols';
+import { UsePath } from 'types/nodes';
+import { SearchContext, Resolution } from 'types/scope';
+import { filePathToScope, Logger } from 'utils';
 import { ComponentTable } from './ComponentTable';
-import { asReturnType } from '../utils/parse';
+import { CompileError, SimpleError } from 'types/logging';
 
 export class Resolver {
   public readonly modules = new Map<string, ModuleTable>();
+  private filename: string = '';
+  private scope: UsePath = [];
+  public checkErrors: CompileError[] = [];
+
+  constructor() {
+    GlobalTable.init();
+  }
+
+  public addError(err: SimpleError): void {
+    this.checkErrors.push({
+      ...err,
+      file: this.filename,
+    });
+  }
+
+  public setFilename(filename: string): void {
+    this.filename = filename;
+    this.scope = filePathToScope(filename);
+  }
 
   public registerUnit(unit: VisitedUnit): void {
     const program = unit.program;
@@ -18,11 +36,14 @@ export class Resolver {
     this.modules.set(program.scope.join('.'), module);
   }
 
-  resolveGlobal(name: string): TypeRefSymbol | ReturnType | undefined {
-    const global = GlobalTable.findByName(name);
-    if (global) return (global as unknown as ReturnType);
+  private resolveGlobal(search: SearchContext): Resolution {
+    const {symbolName, prefix} = search;
 
-    return undefined;
+    if (prefix) {
+      return GlobalTable.findByName(`${prefix}.${symbolName}`);
+    }
+
+    return GlobalTable.findByName(symbolName);
   }
 
   public getModule(scope: UsePath): ModuleTable | undefined {
@@ -30,35 +51,20 @@ export class Resolver {
     return this.modules.get(scopeString);
   }
 
-  public resolve(scope: UsePath, identifier: string): TypeRefSymbol | ReturnType | undefined {
-    const inComponent = this.resolveInComponents(scope, identifier);
-    if (inComponent) {
-      return inComponent;
+
+  public resolve(search: SearchContext): Resolution {
+    const global = this.resolveGlobal(search);
+    if (global) {
+      return global;
     }
 
-    return this.resolveGlobal(identifier);
-  }
-
-  public resolveInComponents(scope: UsePath, identifier: string): TypeRefSymbol | ReturnType | undefined {
-    const scopeString = scope.join('.');
-    const module = this.modules.get(scopeString);
+    const module = this.getModule(this.scope);
     if (!module) {
+      Logger.error(`Module ${this.scope.join('.')} not found`);
       return undefined;
     }
 
-    for (const comp of module.components.values()) {
-      if (comp.componentNode.name.text === identifier) {
-        return ReturnType.Component;
-      }
-
-      for (const prop of comp.componentNode.properties) {
-        if (prop.name.text === identifier) {
-          return asReturnType(prop.typeAnnotation);
-        }
-      }
-    }
-
-    return undefined;
+    return module.resolve(search);
   }
 
   public resolveComponent(scope: UsePath, componentName: string): ComponentTable {
@@ -75,15 +81,6 @@ export class Resolver {
 
     return componentTable;
   }
-
-  public resolveTemplate(scope: UsePath, componentName: string): TemplateSymbols | undefined {
-    const componentTable = this.resolveComponent(scope, componentName);
-
-    if (componentTable) {
-      return componentTable.templateSymbols;
-    }
-
-    // todo: implement imports
-    throw new Error('Import components from other modules not implemented yet');
-  }
 }
+
+export const res = new Resolver();

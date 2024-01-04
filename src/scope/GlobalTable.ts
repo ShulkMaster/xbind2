@@ -1,16 +1,14 @@
-import { HSymbols } from 'types/symbol';
-import { stringSymbol } from 'bcl/String';
+import { HSymbol } from 'types/scope';
+import { stringSymbols } from 'bcl/lang';
 
 export class GlobalTable {
-  private static readonly symbols: Map<string, HSymbols> = new Map();
+  private static readonly symbols: Map<string, HSymbol> = new Map();
 
   static init() {
-    stringSymbol.forEach(symbol => {
-      this.symbols.set(symbol.name, symbol);
-    });
+    this.symbols.set(stringSymbols.fqnd, stringSymbols);
   }
 
-  static findByName(name: string): HSymbols | undefined {
-    return this.symbols.get(name);
+  static findByName(fqnd: string): HSymbol | undefined {
+    return this.symbols.get(fqnd);
   }
 }

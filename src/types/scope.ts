@@ -16,18 +16,12 @@ export const enum VarModifier {
   Prop = 'prop',
 }
 
-export type SymbolOps = {
-  readonly: boolean;
-  public: boolean;
-};
-
 export type SymbolRef = {
   module: UsePath;
   symbolName: string;
 };
 
 export type SearchContext = {
-  module: UsePath;
   prefix?: string;
   symbolName: string;
 };
@@ -50,7 +44,7 @@ export type ArgList = {
   typeRef: SymbolRef;
   variadic: boolean;
   state: ArgState;
-} & BaseSymbol;
+};
 
 export type FunctionSymbol = {
   kind: SymbolKind.Function;
@@ -71,13 +65,13 @@ export type Member = {
 export type TypeSymbol = {
   kind: SymbolKind.Type;
   members: { [member: string]: Member };
-};
+} & BaseSymbol;
 
 export type VariableSymbol = {
   kind: SymbolKind.Variable;
   modifier: VarModifier;
   typeRef: SymbolRef;
-} & SymbolOps;
+} & BaseSymbol;
 
 export type ObjectSymbol = {
   kind: SymbolKind.Object;
