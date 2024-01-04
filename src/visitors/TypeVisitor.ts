@@ -1,41 +1,22 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import { VarTypeContext, PrimitiveTypeContext } from 'parser/Haibt';
-import { PrimitiveTypeNode, TypeNode } from 'types/nodes/types';
 import { symbolToToken } from 'utils/parse';
+import { Token } from 'types/token';
 
-export class TypeVisitor extends BaseVisitor<TypeNode> {
+export class TypeVisitor extends BaseVisitor<Token> {
 
-  visitVarType = (ctx: VarTypeContext): TypeNode => {
+  visitVarType = (ctx: VarTypeContext): Token => {
     const identifier = ctx.Identifier();
 
     if (identifier) {
-      return {
-        primitive: false,
-        typeName: symbolToToken(identifier.symbol),
-      };
+      return symbolToToken(identifier.symbol);
     }
 
     const primitiveType = ctx.primitiveType();
     return this.visitPrimitiveType(primitiveType);
   };
 
-  visitPrimitiveType = (ctx: PrimitiveTypeContext): PrimitiveTypeNode => {
-    const token = ctx.start;
-
-    switch (token.text) {
-      case 'color':
-      case 'string':
-      case 'number':
-      case 'boolean':
-      case 'undefined':
-      case 'void':
-        return {
-          primitive: true,
-          name: token.text,
-          token: symbolToToken(token),
-        };
-      default:
-        throw new Error(`Unexpected primitive type ${token.text} at ${token.line}:${token.column}`);
-    }
+  visitPrimitiveType = (ctx: PrimitiveTypeContext): Token => {
+    return symbolToToken(ctx.start);
   };
 }

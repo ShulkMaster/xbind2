@@ -62,7 +62,7 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
       propType.members.push({
         name: property.name,
         optional: property.optional || property.initializer !== undefined,
-        type: property.typeAnnotation,
+        typeNotation: property.typeAnnotation,
       });
     }
     this.types.push(propType);

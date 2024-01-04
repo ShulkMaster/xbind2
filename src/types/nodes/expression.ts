@@ -1,5 +1,4 @@
 import { Token } from 'types/token';
-import { TypeNode } from './types';
 import { ReturnType } from './native';
 
 export type ExpressionNode = AssignmentExpressionNode;
@@ -82,7 +81,7 @@ export type MultiplicativeExpressionNode = {
 export type CastExpressionNode = {
   kind: ExpressionKind.CastExpression;
   left: ExpressionResult;
-  as: TypeNode;
+  as: Token;
 };
 
 export type UnaryExpressionNode = {
@@ -108,7 +107,7 @@ export type PostfixExpressionNode = {
     index: ExpressionResult;
     close: Token;
   } | undefined;
-  follow: ExpressionResult | undefined;
+  follow: PostfixExpressionNode | undefined;
 };
 
 export type PrimaryExpressionNode = {

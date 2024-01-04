@@ -1,13 +1,12 @@
-import { CompileError } from './logging';
-import { SymbolRef } from './symbol';
-import { ReturnType } from './nodes/native';
+import { SimpleError } from './logging';
 import { ProgramContext } from 'parser/Haibt';
 import { ProgramNode, UsePath } from './nodes';
+import { HSymbol } from './scope';
 
 export type ExpressionCheckResult = {
   valid: boolean;
-  errors: CompileError[];
-  result: SymbolRef | ReturnType;
+  errors: SimpleError[];
+  result: HSymbol;
 };
 
 export type ParseUnit = {

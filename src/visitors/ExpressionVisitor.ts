@@ -288,7 +288,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
   visitPostfixFollow = (ctx: H.PostfixFollowContext): N.PostfixExpressionNode => {
     const operator = ctx.PlusPlus() || ctx.MinusMinus();
     const followExp = ctx.postfixFollow();
-    let follow: N.ExpressionResult | undefined = undefined;
+    let follow: N.PostfixExpressionNode | undefined = undefined;
 
     if (followExp.getChildCount()) {
       follow = this.visitPostfixFollow(followExp);
