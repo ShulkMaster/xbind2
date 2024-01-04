@@ -1,17 +1,13 @@
-import { CompileError } from 'types/logging';
+import { SimpleError } from 'types/logging';
 import { ExpressionCheck } from './ExpressionCheck';
 import * as N from 'types/nodes';
-import { Resolver } from 'scope';
 
 export class TemplateChecker {
-  private readonly errorStack: CompileError[];
+  private readonly errorStack: SimpleError[] = [];
   private readonly expChecker: ExpressionCheck;
-  private readonly program: N.ProgramNode;
 
-  constructor(errorStack: CompileError[], program: N.ProgramNode, resolver: Resolver) {
-    this.errorStack = errorStack;
-    this.program = program;
-    this.expChecker = new ExpressionCheck(program, resolver);
+  constructor() {
+    this.expChecker = new ExpressionCheck();
   }
 
   checkTemplate(template: N.TemplateNode): void {
@@ -20,7 +16,7 @@ export class TemplateChecker {
     });
   }
 
-  public getErrors(): CompileError[] {
+  public getErrors(): SimpleError[] {
     return this.errorStack;
   }
 
@@ -31,7 +27,6 @@ export class TemplateChecker {
     if (closeTag && openTag.text !== closeTag.text) {
       this.errorStack.push({
         message: `tag ${openTag.text} is not closed`,
-        file: this.program.sourceFile,
         line: openTag.line,
         column: openTag.column,
       });

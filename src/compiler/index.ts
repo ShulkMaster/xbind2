@@ -32,15 +32,15 @@ export function compile(source: string, option: CompileOptions): void {
 
   const visitedUnits = parseUnits.map(visitHaibt);
   const resolver = new Resolver();
-  const crossBind = new Crossbind(resolver);
+  const crossBind = new Crossbind();
   const replacer = new TemplateReplacer(resolver);
 
   visitedUnits.forEach(unit => resolver.registerUnit(unit));
   visitedUnits.forEach(unit => replacer.replaceStyles(unit.program));
   visitedUnits.forEach(unit => crossBind.check(unit.program));
-  if (crossBind.errors.length > 0) {
-    Logger.compileErrors(crossBind.errors);
-    Logger.error(`Compilation failure, found ${crossBind.errors.length} errors`);
+  if (resolver.checkErrors.length > 0) {
+    Logger.compileErrors(resolver.checkErrors);
+    Logger.error(`Compilation failure, found ${resolver.checkErrors.length} errors`);
     return;
   }
 

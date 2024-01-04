@@ -1,36 +1,45 @@
-import { HSymbol } from 'types/symbol';
+import { HSymbol } from 'types/scope';
 import {
   ArgState,
   createMethodFor,
-  NativeDataType,
   addMember,
   nativeBool,
   nativeNumber,
-  nativeString
+  nativeString, toSymbolRef,
 } from './lib';
 
-addMember(nativeString, 'length', {readonly: true, ref: NativeDataType.Number});
+addMember(nativeString, [
+  {
+    name: 'length',
+    typeRef: toSymbolRef(nativeNumber),
+    optional: false,
+    readonly: true,
+  },
+]);
 
-const concat = createMethodFor(nativeString, 'concat', [{
+createMethodFor(nativeString, 'concat', [{
   name: 'strings',
-  variadic: true,
-  array: true,
-  type: nativeString,
   state: ArgState.Optional,
-}], nativeString);
+  typeRef: toSymbolRef(nativeString),
+  variadic: true,
+}], {
+  ret: nativeString,
+});
 
-const includes = createMethodFor(nativeString, 'includes', [
+createMethodFor(nativeString, 'includes', [
   {
     name: 'searchString',
-    type: nativeString,
     state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
   },
   {
     name: 'position',
-    type: nativeNumber,
     state: ArgState.Optional,
-  }
-], nativeBool);
+    typeRef: toSymbolRef(nativeNumber),
+    variadic: false,
+  },
+], {ret: nativeBool});
 
 /*
 slice: {
@@ -207,14 +216,5 @@ const trim: NativeFunctionSymbol = {
 };
 */
 
-export const stringSymbols: HSymbol[] = [
-  nativeString,
-  concat,
-  includes,
-  // slice,
-  // split,
-  // toLowerCase,
-  // toUpperCase,
-  // trim,
-];
+export const stringSymbols: HSymbol = nativeString;
 

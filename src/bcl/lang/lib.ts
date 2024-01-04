@@ -1,4 +1,12 @@
-import { Callable, HSymbol, SymbolOps, SymbolRef } from 'types/symbol';
+import {
+  ArgList,
+  FunctionSymbol,
+  HSymbol,
+  Member,
+  ObjectSymbol,
+  SymbolKind,
+  SymbolRef,
+} from 'types/scope';
 
 export const enum NativeDataType {
   String = 'string',
@@ -6,6 +14,7 @@ export const enum NativeDataType {
   Boolean = 'boolean',
   Array = 'array',
   Undefined = 'undefined',
+  Void = 'void',
 }
 
 export const enum ArgState {
@@ -14,139 +23,90 @@ export const enum ArgState {
   Default = 'default',
 }
 
-const undefinedSymbol: HSymbol = {
+export const undefinedSymbol: ObjectSymbol = {
   fqnd: NativeDataType.Undefined,
   name: NativeDataType.Undefined,
-  scope: [],
-  callable: undefined,
-  attributes: undefined,
+  kind: SymbolKind.Object,
   members: {},
-  methods: {},
+  origin: 'object',
 };
 
-export const nativeBool: HSymbol = {
-  fqnd: 'boolean',
-  name: 'boolean',
-  scope: [],
-  attributes: undefined,
-  callable: undefined,
+export const nativeVoid: ObjectSymbol = {
+  fqnd: NativeDataType.Void,
+  name: NativeDataType.Void,
+  kind: SymbolKind.Object,
   members: {},
-  methods: {},
+  origin: 'object',
 };
 
-export const nativeString: HSymbol = {
+export const nativeBool: ObjectSymbol = {
+  fqnd: NativeDataType.Boolean,
+  name: NativeDataType.Boolean,
+  kind: SymbolKind.Object,
+  members: {},
+  origin: 'object',
+};
+
+export const nativeString: ObjectSymbol = {
   fqnd: NativeDataType.String,
   name: NativeDataType.String,
-  scope: [],
-  attributes: undefined,
-  callable: undefined,
+  kind: SymbolKind.Object,
   members: {},
-  methods: {},
+  origin: 'object',
 };
 
-export const nativeNumber: HSymbol = {
+export const nativeNumber: ObjectSymbol = {
   fqnd: NativeDataType.Number,
   name: NativeDataType.Number,
-  scope: [],
-  attributes: undefined,
-  callable: undefined,
+  kind: SymbolKind.Object,
   members: {},
-  methods: {},
+  origin: 'object',
 };
 
-export const nativeArray: HSymbol = {
+export const nativeArray: ObjectSymbol = {
   fqnd: NativeDataType.Array,
   name: NativeDataType.Array,
-  scope: [],
-  attributes: undefined,
-  callable: undefined,
+  kind: SymbolKind.Object,
   members: {},
-  methods: {},
+  origin: 'object',
 };
 
-export const toStringSymbol: HSymbol = {
+export const toStringSymbol: FunctionSymbol = {
   name: 'toString',
   fqnd: 'toString',
-  attributes: undefined,
-  members: {},
-  scope: [],
-  methods: {},
-  callable: {
-    returnType: {
-      name: NativeDataType.String,
-      fqnd: NativeDataType.String,
-      scope: [],
-      ref: NativeDataType.String,
-      public: true,
-      readonly: true,
-    },
-    args: {},
+  kind: SymbolKind.Function,
+  args: [],
+  returnType: {
+    symbolName: NativeDataType.String,
+    module: [],
   },
 };
 
-export function addMember(s: HSymbol, name: string, sr: Partial<SymbolRef>): void {
-  s.members[name] = {
-    name,
-    ref: sr.ref ?? NativeDataType.Undefined,
-    fqnd: sr.fqnd ?? `${s.fqnd}.${name}`,
-    readonly: sr.readonly ?? false,
-    scope: [...s.scope, s.name],
-    public: sr.public ?? true,
-  };
-}
-
-export function toSymbolRef(s: HSymbol, ops: Partial<SymbolOps> = {}): SymbolRef {
-  return {
-    name: s.name,
-    fqnd: s.fqnd,
-    ref: s.fqnd,
-    scope: s.scope,
-    readonly: ops.readonly ?? false,
-    public: ops.public ?? true,
-  };
-}
-
-type AddMethodArgs = {
-  name: string;
-  type: HSymbol;
-  variadic?: boolean;
-  array?: boolean;
-  state: ArgState;
-};
-
-export function createMethodFor(s: HSymbol, name: string, args: AddMethodArgs[], ret?: HSymbol): HSymbol {
-  s.methods[name] = {
-    name,
-    fqnd: `${s.fqnd}.${name}`,
-    scope: [...s.scope, s.name],
-    ref: `${s.fqnd}.${name}`,
-    public: true,
-    readonly: true,
-  };
-
-  const retRefSymbol = toSymbolRef(ret ?? undefinedSymbol, { readonly: true });
-  const method: Callable = {
-    returnType: retRefSymbol,
-    args: {},
-  };
-
-  for (const arg of args) {
-    const { type, variadic, array} = arg;
-    method.args[arg.name] = {
-      name: arg.name,
-      type: toSymbolRef(type, { readonly: true }),
-      variadic: Boolean(variadic),
-      array: Boolean(array),
-    };
+export function addMember(s: ObjectSymbol, members: Member[]): void {
+  for (const member of members) {
+    s.members[member.name] = member;
   }
+}
 
+export function toSymbolRef(s: HSymbol, module: string[] = []): SymbolRef {
   return {
+    module,
+    symbolName: s.name,
+  };
+}
+
+type MethodOptions = Partial<{
+  ret: HSymbol;
+  readonly: boolean;
+  optional: boolean;
+}>;
+
+export function createMethodFor(s: ObjectSymbol, name: string, args: ArgList[], opts: MethodOptions = {}): void {
+  s.members[name] = {
+    args,
     name,
-    fqnd: `${s.fqnd}.${name}`,
-    members: {},
-    attributes: undefined,
-    scope: [...s.scope, s.name],
-    methods: {},
-    callable: method,
+    readonly: opts.readonly ?? true,
+    optional: opts.optional ?? false,
+    typeRef: toSymbolRef(opts.ret ?? undefinedSymbol),
   };
 }

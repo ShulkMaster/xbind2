@@ -1,24 +1,19 @@
 import { ExpressionCheckResult } from 'types/crossbind';
 import * as N from 'types/nodes';
-import { UsePath } from 'types/nodes';
-import { Resolver } from 'scope/Resolver';
-import { ReturnType } from 'types/nodes/native';
+import { res } from 'scope/Resolver';
+import { undefinedSymbol } from 'bcl/lang/lib';
+import { getTokenFromExp, resolveConstantExpression } from './helper';
+import { HSymbol, Resolution } from 'types/scope';
+import { expCheckCall, expCheckMember } from './ExpResolver';
 
 export class ExpressionCheck {
-  private readonly fileName: string;
-  private resolver: Resolver;
-  private scopes: UsePath = [];
-
-  constructor(program: N.ProgramNode, resolver: Resolver) {
-    this.fileName = program.sourceFile;
-    this.resolver = resolver;
-    this.scopes = program.scope;
-  }
 
   checkExpression(expression: N.ExpressionResult): ExpressionCheckResult {
     switch (expression.kind) {
-      case N.ExpressionKind.constantExpression:
-        return this.checkConstantExpression(expression);
+      case N.ExpressionKind.constantExpression: {
+        const result = resolveConstantExpression(expression);
+        return {result, valid: true, errors: []};
+      }
       case N.ExpressionKind.PrimaryExpression:
         return this.checkPrimaryExpression(expression);
       case N.ExpressionKind.PostfixExpression:
@@ -40,61 +35,76 @@ export class ExpressionCheck {
     }
   }
 
-  checkConstantExpression(exp: N.ConstantExpressionNode): ExpressionCheckResult {
-    return {
-      valid: true,
-      errors: [],
-      result: exp.primitiveType,
-    };
-  }
-
   checkPrimaryExpression(exp: N.PrimaryExpressionNode): ExpressionCheckResult {
-    const { identifier, groupExpression } = exp;
+    const {identifier, groupExpression} = exp;
 
     if (groupExpression) {
       return this.checkExpression(groupExpression.expression);
     }
 
-    if (identifier) {
-      const resolution = this.resolver.resolve(this.scopes, identifier.text);
+    if (!identifier) {
+      throw new Error('Invalid primary expression');
+    }
 
-      if (!resolution) {
-        return {
-          valid: false,
-          errors: [
-            {
-              message: `Unresolved identifier ${identifier.text}`,
-              column: identifier.column,
-              line: identifier.line,
-              file: this.fileName,
-            }
-          ],
-          result: ReturnType.Void,
-        };
-      }
+    const resolution = res.resolve({symbolName: identifier.text});
 
+    if (!resolution) {
       return {
-        valid: true,
-        errors: [],
-        result: resolution,
+        valid: false,
+        errors: [
+          {
+            message: `Unresolved identifier ${identifier.text}`,
+            column: identifier.column,
+            line: identifier.line,
+          },
+        ],
+        result: undefinedSymbol,
       };
     }
 
-    throw new Error('Invalid primary expression');
+    return {
+      valid: true,
+      errors: [],
+      result: resolution,
+    };
   }
 
   checkPostfixExpression(exp: N.PostfixExpressionNode): ExpressionCheckResult {
-    const { follow, primary, operator } = exp;
-    const result = this.checkExpression(primary);
-
-    if (follow) {
-      return { valid: true, errors: [], result: ReturnType.Void };
+    const check = this.checkExpression(exp.primary);
+    if (!check.valid) {
+      return check;
     }
 
-    if (!result.valid) {
-      return result;
+    return this.checkPostfixFollow(exp, check.result);
+  }
+
+  checkPostfixFollow(exp: N.PostfixExpressionNode, previous: HSymbol): ExpressionCheckResult {
+    const {call, indexed, member, operator, follow} = exp;
+
+    let check: Resolution;
+    if (member) {
+      check = expCheckMember(member, previous);
     }
 
-    return result;
+    if (call) {
+      check = expCheckCall(call.open, call.arguments, previous);
+    }
+
+    if (check && follow) {
+      return this.checkPostfixFollow(follow, check);
+    }
+
+    if (check) {
+      return {valid: true, errors: [], result: check};
+    }
+
+    const dec = getTokenFromExp(exp);
+    return {
+      result: undefinedSymbol, valid: false, errors: [{
+        message: `Invalid postfix expression ${dec.text}`,
+        column: dec.column,
+        line: dec.line,
+      }],
+    };
   }
 }
