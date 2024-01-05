@@ -387,6 +387,11 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       return this.visitArrayLiteral(indexedExpression);
     }
 
+    const objectLiteral = ctx.objectLiteral();
+    if (objectLiteral?.getChildCount() > 0) {
+      return this.visitObjectLiteral(objectLiteral);
+    }
+
     const constantExpression = ctx.constantExpression();
     if (constantExpression) {
       return this.visitConstantExpression(constantExpression);
@@ -466,6 +471,33 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
         break;
       }
       argList = follow.argExpList();
+    }
+
+    return exp;
+  };
+
+  visitObjectLiteral = (ctx: H.ObjectLiteralContext): N.ObjectLiteralExpressionNode => {
+    const exp: N.ObjectLiteralExpressionNode = {
+      kind: ExpressionKind.ObjectLiteralExpression,
+      open: symbolToToken(ctx.OBrace().symbol),
+      elements: [],
+      close: symbolToToken(ctx.CBrace().symbol),
+    };
+
+    let member = ctx.objectLiteralBody();
+    while (member?.getChildCount() > 0) {
+      const key = member.Identifier();
+      const value = member.expression();
+      const argExp = this.visitExpression(value);
+      exp.elements.push({
+        key: symbolToToken(key.symbol),
+        value: argExp,
+      });
+      const follow = member.objectLiteralBodyFollow();
+      if(follow.getChildCount() < 2) {
+        break;
+      }
+      member = follow.objectLiteralBody();
     }
 
     return exp;

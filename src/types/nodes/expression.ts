@@ -1,25 +1,23 @@
 import { Token } from 'types/token';
 import { ReturnType } from './native';
 
-export type ExpressionNode = AssignmentExpressionNode;
-
 export enum ExpressionKind {
-  AssignmentExpression,
-  TernaryExpression,
-  ConditionalExpression,
-  LogicalOrExpression,
-  LogicalAndExpression,
-  EqualityExpression,
-  RelationalExpression,
-  AdditiveExpression,
-  MultiplicativeExpression,
-  CastExpression,
-  UnaryExpression,
-  PostfixExpression,
-  PrimaryExpression,
-  constantExpression,
-  ArrayLiteralExpression,
-  ObjectLiteralExpression,
+  AssignmentExpression = 'assigment',
+  TernaryExpression = 'ternary',
+  ConditionalExpression = 'conditional',
+  LogicalOrExpression = 'logical-or',
+  LogicalAndExpression = 'logical-and',
+  EqualityExpression = 'equality',
+  RelationalExpression = 'relational',
+  AdditiveExpression = 'additive',
+  MultiplicativeExpression = 'multiplicative',
+  CastExpression = 'cast',
+  UnaryExpression = 'unary',
+  PostfixExpression = 'postfix',
+  PrimaryExpression = 'primary',
+  constantExpression = 'constant',
+  ArrayLiteralExpression = 'array-literal',
+  ObjectLiteralExpression = 'object-literal',
 }
 
 export type AssignmentExpressionNode = {
