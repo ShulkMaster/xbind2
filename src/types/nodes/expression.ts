@@ -98,7 +98,7 @@ export type ArgumentList = {
 
 export type PostfixExpressionNode = {
   kind: ExpressionKind.PostfixExpression;
-  primary: ExpressionResult;
+  primary: ExpressionResult | undefined;
   operator: Token | undefined;
   call: ArgumentList | undefined;
   member: Token | undefined;

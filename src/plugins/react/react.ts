@@ -18,7 +18,7 @@ export class ReactPlugin {
 
   public setResolver(resolver: Resolver): void {
     this.resolver = resolver;
-    this.temp = new Template(resolver);
+    this.temp = new Template();
   }
 
   public writeProgram(program: N.ProgramNode): void {

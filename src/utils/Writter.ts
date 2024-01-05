@@ -71,10 +71,10 @@ export class Writer {
   }
 
   public static postfixExpression(exp: E.PostfixExpressionNode): string {
-    const { primary, operator, call, indexed, follow } = exp;
+    const { primary, operator, call, indexed, follow, member } = exp;
 
     const followExpression = follow ? this.writeExpression(follow) : '';
-    const primaryExpression = this.writeExpression(primary);
+    const primaryExpression = primary ? this.writeExpression(primary) : '';
 
     if (operator) {
       return `${primaryExpression} ${operator.text} ${followExpression}`;
@@ -91,7 +91,7 @@ export class Writer {
       return `${primaryExpression}[${index}]${followExpression}`;
     }
 
-    return `${primaryExpression}${followExpression}`;
+    return `${primaryExpression}.${member?.text}${followExpression}`;
   }
 
   public static unaryExpression(exp: E.UnaryExpressionNode): string {

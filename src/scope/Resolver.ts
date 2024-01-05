@@ -74,9 +74,10 @@ export class Resolver {
       throw new Error(`Module ${scope.join('.')} not found`);
     }
 
-    const componentTable = module.components.get(scopeString + '.' + componentName);
+    const componentTable = module.components.get(componentName);
     if (!componentTable) {
-      throw new Error(`Component ${scope.join('.')} not found`);
+      const searchName = scopeString + '.' + componentName;
+      throw new Error(`Component ${searchName} not found`);
     }
 
     return componentTable;

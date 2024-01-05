@@ -297,7 +297,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
     if (operator) {
       return {
         kind: ExpressionKind.PostfixExpression,
-        primary: {} as N.ExpressionResult,
+        primary: undefined,
         operator: symbolToToken(operator.symbol),
         member: undefined,
         call: undefined,
@@ -311,7 +311,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       const identifier = ctx.Identifier();
       return {
         kind: ExpressionKind.PostfixExpression,
-        primary: {} as N.ExpressionResult,
+        primary: undefined,
         operator: undefined,
         member: symbolToToken(identifier.symbol),
         call: undefined,
@@ -326,7 +326,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       const argList = this.visitArgExpListInt(ctx.argExpList());
       return {
         kind: ExpressionKind.PostfixExpression,
-        primary: {} as N.ExpressionResult,
+        primary: undefined,
         operator: undefined,
         member: undefined,
         call: {
@@ -345,7 +345,7 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
 
     return {
       kind: ExpressionKind.PostfixExpression,
-      primary: {} as N.ExpressionResult,
+      primary: undefined,
       operator: undefined,
       call: undefined,
       member: undefined,

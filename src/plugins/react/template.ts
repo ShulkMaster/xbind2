@@ -1,20 +1,15 @@
-import { ComponentTable, Resolver } from 'scope';
+import { ComponentTable, res } from 'scope';
 import { Printer, Writer } from 'utils';
 import * as N from 'types/nodes';
 import { ConstantExpressionNode, ExpressionKind, TagNode } from 'types/nodes';
 import { ReturnType } from 'types/nodes/native';
 
 export class Template {
-  private readonly resolver: Resolver;
   private comp: ComponentTable = {} as ComponentTable;
   private compNode: N.ComponentNode = {} as N.ComponentNode;
 
-  constructor(resolver: Resolver) {
-    this.resolver = resolver;
-  }
-
   public writeJsx(comp: N.ComponentNode, printer: Printer): void {
-    this.comp = this.resolver.resolveComponent(comp.scope, comp.name.text);
+    this.comp = res.resolveComponent(comp.scope, comp.name.text);
     this.compNode = comp;
     const template = comp.template;
 
