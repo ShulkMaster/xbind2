@@ -1,6 +1,6 @@
 import { ReturnType } from 'types/nodes/native';
 import { ConstantExpressionNode, ExpressionKind, ExpressionResult } from 'types/nodes';
-import { nativeNumber, undefinedSymbol, nativeString, nativeBool } from 'bcl/lang/lib';
+import { nativeNumber, undefinedSymbol, nativeString, nativeBool, nativeNames, NativeDataType } from 'bcl/lang/lib';
 import { HSymbol, ObjectSymbol, Resolution, SymbolKind } from 'types/scope';
 import { Token } from 'types/token';
 import { res } from 'scope';
@@ -8,16 +8,16 @@ import { res } from 'scope';
 export function resolveConstantExpression(exp: ConstantExpressionNode): HSymbol {
   switch (exp.primitiveType) {
     case ReturnType.Void:
-      return undefinedSymbol;
+      return { ...undefinedSymbol, declaration: exp.token };
     case ReturnType.Number:
-      return nativeNumber;
+      return { ...nativeNumber, declaration: exp.token};
     case ReturnType.String:
-      return nativeString;
+      return { ...nativeString, declaration: exp.token};
     case ReturnType.Boolean:
-      return nativeBool;
+      return { ...nativeBool, declaration: exp.token};
     case ReturnType.Undefined:
     default:
-      return undefinedSymbol;
+      return { ...undefinedSymbol, declaration: exp.token};
   }
 }
 
@@ -26,13 +26,13 @@ export function isAssignableTo(expected: Resolution, actual: Resolution): boolea
     throw new Error(`Missing symbol ${actual?.name} || ${expected?.name}`);
   }
 
-  if (expected === actual) {
+  if (expected.fqnd === actual.fqnd) {
     return true;
   }
 
   if (expected.kind !== actual.kind) {
     res.addError({
-      message: `Type ${actual.fqnd} is not assignable to ${expected.fqnd}`,
+      message: `${actual.kind} ${actual.fqnd} is not assignable to ${expected.fqnd}`,
       line: actual.declaration?.line ?? 0,
       column: actual.declaration?.column ?? 0,
     });
@@ -50,10 +50,24 @@ export function isAssignableTo(expected: Resolution, actual: Resolution): boolea
 
 function isObjectAssignable(exp: ObjectSymbol, actual: ObjectSymbol): boolean {
   let valid = true;
+  const expName = exp.name;
+  const actualName = actual.name;
+  if(nativeNames.includes(expName as NativeDataType)) {
+    if(expName !== actualName) {
+      res.addError({
+        message: `${actualName} is not assignable to ${expName}`,
+        line: actual.declaration?.line ?? 0,
+        column: actual.declaration?.column ?? 0,
+      });
+      return false;
+    }
+    return true;
+  }
+
   for (const member of Object.values(exp.members)) {
     const actualMember = actual.members[member.name];
-    const line = member.declaration?.line ?? 0;
-    const column = member.declaration?.column ?? 0;
+    const line = actual.declaration?.line ?? 0;
+    const column = actual.declaration?.column ?? 0;
     let message  = '';
 
     if (!actualMember) {
@@ -103,8 +117,19 @@ export function getTokenFromExp(exp: ExpressionResult): Token {
       return exp.as;
     case ExpressionKind.UnaryExpression:
       return exp.operator;
-    case ExpressionKind.PostfixExpression:
-      return getTokenFromExp(exp.primary);
+    case ExpressionKind.PostfixExpression: {
+      if(exp.primary) {
+        return getTokenFromExp(exp.primary);
+      }
+      let token = exp.indexed?.open;
+      if(token) return token;
+      token = exp.member;
+      if(token) return token;
+      token = exp.operator;
+      if(token) return token;
+      token = exp.call?.open;
+      return token ?? { text: '', line: 0, column: 0} as Token;
+    }
     case ExpressionKind.PrimaryExpression: {
       const id = exp.identifier;
       if(id) return id;

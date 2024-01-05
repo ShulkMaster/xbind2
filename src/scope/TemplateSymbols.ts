@@ -73,6 +73,7 @@ export class TemplateSymbols {
     const tagIfIndex = tagGroup.indexOf(tagIf);
     const previousTag = tagGroup[tagIfIndex - 1];
 
+    // todo: check why this fails
     if (previousTag?.type === 'tag') {
       const directives = previousTag.directives;
       const templateDirective = directives.find(d => d.kind === 'template');

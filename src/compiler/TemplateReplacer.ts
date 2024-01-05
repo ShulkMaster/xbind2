@@ -1,16 +1,11 @@
-import { ModuleTable, Resolver } from 'scope';
-import { ChildNode, ComponentNode, ExpressionKind, ExpressionResult, ProgramNode, TagNode } from 'types/nodes';
+import { ModuleTable, res } from 'scope';
+import { ChildNode, ComponentNode, ExpressionKind, ExpressionResult, ProgramNode } from 'types/nodes';
 import { ReturnType } from '../types/nodes/native';
 
 export class TemplateReplacer {
-  private resolver: Resolver;
-
-  constructor(resolver: Resolver) {
-    this.resolver = resolver;
-  }
 
   replaceStyles(program: ProgramNode): void {
-    const module = this.resolver.getModule(program.scope);
+    const module = res.getModule(program.scope);
     if(!module) {
       throw new Error(`Module ${program.scope} not found`);
     }
@@ -54,7 +49,7 @@ export class TemplateReplacer {
 
     if(exp.kind === ExpressionKind.PostfixExpression) {
       const { primary, follow, member} = exp;
-      if(primary.kind === ExpressionKind.PrimaryExpression && !follow) {
+      if(primary?.kind === ExpressionKind.PrimaryExpression && !follow) {
         const primaryId = primary.identifier;
 
         if(primaryId && member) {

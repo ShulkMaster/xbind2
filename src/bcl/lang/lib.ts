@@ -82,6 +82,15 @@ export const toStringSymbol: FunctionSymbol = {
   },
 };
 
+export const nativeNames = [
+  NativeDataType.String,
+  NativeDataType.Number,
+  NativeDataType.Boolean,
+  NativeDataType.Array,
+  NativeDataType.Undefined,
+  NativeDataType.Void,
+];
+
 export function addMember(s: ObjectSymbol, members: Member[]): void {
   for (const member of members) {
     s.members[member.name] = member;

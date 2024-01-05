@@ -18,7 +18,19 @@ function checkCompMember(member: Token, symbol: S.ObjectSymbol): Resolution {
     return undefined;
   }
 
-  return res.resolve(symbolMember.typeRef);
+  const { name, typeRef, declaration, args} = symbolMember;
+  if (args) {
+    return {
+      kind: SymbolKind.Function,
+      name,
+      args,
+      declaration,
+      returnType: typeRef,
+      fqnd: `${symbol.fqnd}.${name}`,
+    };
+  }
+
+  return res.resolve(typeRef);
 }
 
 export function expCheckMember(member: Token, symbol: HSymbol): Resolution {
@@ -38,10 +50,28 @@ export function expCheckMember(member: Token, symbol: HSymbol): Resolution {
       return expCheckMember(member, refSymbol);
     }
     case SymbolKind.Style:
+      res.addError({
+        message: 'CSS styles do not have members',
+        column: member.column,
+        line: member.line,
+      });
+      return undefined;
     case SymbolKind.Function:
+      res.addError({
+        message: `${symbol.name}${member.text} its a function and has no members`,
+        column: member.column,
+        line: member.line,
+      });
+      return undefined;
     case SymbolKind.Type:
+      res.addError({
+        message: `${symbol.name} its a type and has no members`,
+        column: member.column,
+        line: member.line,
+      });
+      return undefined;
     default:
-      throw new Error(`Unknown symbol kind ${symbol}`);
+      throw new Error(`Unknown symbol kind for ${symbol}`);
   }
 }
 
@@ -62,12 +92,17 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
     const {valid, result, errors} = checker.checkExpression(arg);
 
     if (!valid) {
-      errors.forEach(res.addError);
+      errors.forEach(e => res.addError(e));
       continue;
     }
     const line = result.declaration?.line ?? 0;
     const column = result.declaration?.column ?? 0;
-    const isAssignable = isAssignableTo(res.resolve(expArg.typeRef), result);
+    const resolveExp = res.resolve(expArg.typeRef);
+    if (expArg.variadic) {
+      isVariadicAssignable(resolveExp, args);
+      return res.resolve(symbol.returnType);
+    }
+    const isAssignable = isAssignableTo(resolveExp, result);
     if (!isAssignable) {
       res.addError({
         message: `Argument ${expArg.name} of type ${expArg.typeRef.symbolName} is not assignable to ${result.fqnd}`,
@@ -77,6 +112,21 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
     }
   }
   return res.resolve(symbol.returnType);
+}
+
+function isVariadicAssignable(expected: Resolution, args: ExpressionResult[]): void {
+  const checker = new ExpressionCheck();
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    const {valid, result, errors} = checker.checkExpression(arg);
+
+    if (!valid) {
+      errors.forEach(e => res.addError(e));
+      continue;
+    }
+    isAssignableTo(expected, result);
+  }
 }
 
 export function expCheckCall(start: Token, args: ExpressionResult[], called: HSymbol): Resolution {

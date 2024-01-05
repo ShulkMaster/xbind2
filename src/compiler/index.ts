@@ -5,7 +5,7 @@ import { parseStream, ProgramVisitor } from 'visitors';
 import { ParseUnit, VisitedUnit } from 'types/crossbind';
 import { ParseErrorListener } from './ParseErrorListener';
 import { Crossbind } from './Crossbind';
-import { Resolver } from 'scope/Resolver';
+import { res } from 'scope/Resolver';
 import { ReactPlugin, VuePlugin } from 'plugins';
 import { TemplateReplacer } from './TemplateReplacer';
 
@@ -31,16 +31,15 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   const visitedUnits = parseUnits.map(visitHaibt);
-  const resolver = new Resolver();
   const crossBind = new Crossbind();
-  const replacer = new TemplateReplacer(resolver);
+  const replacer = new TemplateReplacer();
 
-  visitedUnits.forEach(unit => resolver.registerUnit(unit));
+  visitedUnits.forEach(unit => res.registerUnit(unit));
   visitedUnits.forEach(unit => replacer.replaceStyles(unit.program));
   visitedUnits.forEach(unit => crossBind.check(unit.program));
-  if (resolver.checkErrors.length > 0) {
-    Logger.compileErrors(resolver.checkErrors);
-    Logger.error(`Compilation failure, found ${resolver.checkErrors.length} errors`);
+  if (res.checkErrors.length > 0) {
+    Logger.compileErrors(res.checkErrors);
+    Logger.error(`Compilation failure, found ${res.checkErrors.length} errors`);
     return;
   }
 
@@ -48,7 +47,7 @@ export function compile(source: string, option: CompileOptions): void {
   const plugin = option.plugin === 'react'
     ? new ReactPlugin(option.output)
     : new VuePlugin(option.output);
-  plugin.setResolver(resolver);
+  plugin.setResolver(res);
   visitedUnits.forEach(unit => plugin.writeProgram(unit.program));
   Logger.info('Compilation complete');
 }

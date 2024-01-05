@@ -2,7 +2,7 @@ import { ExpressionCheckResult } from 'types/crossbind';
 import * as N from 'types/nodes';
 import { res } from 'scope/Resolver';
 import { undefinedSymbol } from 'bcl/lang/lib';
-import { getTokenFromExp, resolveConstantExpression } from './helper';
+import { resolveConstantExpression } from './helper';
 import { HSymbol, Resolution } from 'types/scope';
 import { expCheckCall, expCheckMember } from './ExpResolver';
 
@@ -70,7 +70,7 @@ export class ExpressionCheck {
   }
 
   checkPostfixExpression(exp: N.PostfixExpressionNode): ExpressionCheckResult {
-    const check = this.checkExpression(exp.primary);
+    const check = this.checkExpression(exp.primary!);
     if (!check.valid) {
       return check;
     }
@@ -98,13 +98,8 @@ export class ExpressionCheck {
       return {valid: true, errors: [], result: check};
     }
 
-    const dec = getTokenFromExp(exp);
     return {
-      result: undefinedSymbol, valid: false, errors: [{
-        message: `Invalid postfix expression ${dec.text}`,
-        column: dec.column,
-        line: dec.line,
-      }],
+      result: undefinedSymbol, valid: false, errors: [],
     };
   }
 }

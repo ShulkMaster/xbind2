@@ -35,7 +35,7 @@ export class Crossbind {
       const validProp = checker.checkExpression(initializer);
 
       if (!validProp.valid) {
-        validProp.errors.forEach(res.addError);
+        validProp.errors.forEach(e => res.addError(e));
         continue;
       }
 
