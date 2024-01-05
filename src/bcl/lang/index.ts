@@ -1,2 +1,9 @@
+import { nativeBool, nativeVoid, undefinedSymbol } from './lib';
 export { stringSymbols } from './String';
-export { nativeNumber, nativeBool } from './lib';
+export { numberSymbols } from './Number';
+
+export const valueSymbols = [
+    nativeBool,
+    nativeVoid,
+    undefinedSymbol,
+];

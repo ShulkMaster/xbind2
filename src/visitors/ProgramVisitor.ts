@@ -1,9 +1,11 @@
 import BaseVisitor from 'parser/HaibtVisitor';
-import { ProgramContext, ComponentContext, StyleContext } from 'parser/Haibt';
+import * as H from 'parser/Haibt';
 import { ComponentNode, ProgramNode, ProgramResult, StyleNode, TypeDeclarationNode, UsePath } from 'types/nodes';
 import { ComponentVisitor } from './ComponentVisitor';
 import { StyleVisitor } from './StyleVisitor';
 import { filePathToScope } from 'utils';
+import { TypeVisitor } from './TypeVisitor';
+import { symbolToToken } from 'utils/parse';
 
 
 export class ProgramVisitor extends BaseVisitor<ProgramResult> {
@@ -21,7 +23,7 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
   }
 
 
-  visitProgram = (ctx: ProgramContext): ProgramNode => {
+  visitProgram = (ctx: H.ProgramContext): ProgramNode => {
     const rootModule = ctx.module_();
 
     if (rootModule.getChildCount() < 1) {
@@ -41,7 +43,7 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
     };
   };
 
-  visitComponent = (ctx: ComponentContext): void => {
+  visitComponent = (ctx: H.ComponentContext): void => {
     const componentVisitor = new ComponentVisitor();
     const result = componentVisitor.visitComponent(ctx);
     result.scope = this.scope;
@@ -68,8 +70,30 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
     this.types.push(propType);
   };
 
-  visitStyle = (cxt: StyleContext) => {
+  visitStyle = (cxt: H.StyleContext) => {
     const style = this.styleVisitor.visitStyle(cxt);
     this.styles.push(style);
+  };
+
+  visitTypeDef = (ctx: H.TypeDefContext) => {
+    const v = new TypeVisitor();
+    const tName = ctx.Identifier().symbol;
+    const type: TypeDeclarationNode = {
+      typeName: symbolToToken(tName),
+      members: [],
+    };
+
+    let tMember = ctx.typeDefBody();
+    while (tMember?.getChildCount() > 0) {
+      const notation = v.visitVarType(tMember.varType());
+      type.members.push({
+        name: symbolToToken(tMember.Identifier().symbol),
+        optional: tMember.optional().getChildCount() > 0,
+        typeNotation: notation,
+      });
+      tMember = tMember.typeDefBody();
+    }
+
+    this.types.push(type);
   };
 }

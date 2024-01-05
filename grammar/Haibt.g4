@@ -14,7 +14,9 @@ usePath: Identifier useSubModule;
 useSubModule: Dot Identifier useSubModule | ;
 
 typeDef: Type Identifier Assign OBrace typeDefBody CBrace;
-typeDefBody: Identifier Colon varType SemiColon typeDefBody | ;
+typeDefBody: Identifier optional Colon varType SemiColon typeDefBody | ;
+
+optional: Question | ;
 
 style: Style Identifier OBrace styleClasses CBrace;
 

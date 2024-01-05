@@ -72,7 +72,7 @@ export class Logger {
   public static compileErrors(errors: CompileError[]): void {
     for (const error of errors) {
       const { file, column, line, message} = error;
-      Logger.error(`${file} (${line},${column}): ${message}`);
+      Logger.error(`${file} (${line},${column+1}): ${message}`);
     }
   }
 }
