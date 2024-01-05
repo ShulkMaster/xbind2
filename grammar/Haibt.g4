@@ -41,7 +41,9 @@ componentBody: (varDeclaration | propDeclaration | render | functionDeclaration)
 
 varDeclaration: varMutability Identifier Colon varType initValue SemiColon ;
 varMutability: Var | Val;
-varType: primitiveType | Identifier;
+varType: primitiveType array | Identifier array;
+array: OBracnk CBracnk |;
+
 primitiveType: Number | String | Boolean | Void | Color | Undefined;
 
 propDeclaration: Prop Identifier Colon varType initValue SemiColon;
@@ -99,7 +101,12 @@ postfixFollow:
 argExpList: expression argExpListFollow | ;
 argExpListFollow: Comma argExpList | ;
 
-primaryExpression: Identifier | constantExpression | OParen expression CParen;
+primaryExpression: Identifier | constantExpression | OParen expression CParen | objectLiteral | arrayLiteral;
+arrayLiteral: OBracnk argExpList CBracnk;
+
+objectLiteral: OBrace objectLiteralBody CBrace;
+objectLiteralBody: Identifier Colon expression objectLiteralBodyFollow |;
+objectLiteralBodyFollow: Comma objectLiteralBody |;
 
 constantExpression: NumberValue | StringLiteral | BoolValue | Undefined | HEX_COLOR;
 

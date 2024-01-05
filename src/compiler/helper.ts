@@ -1,6 +1,6 @@
 import { ReturnType } from 'types/nodes/native';
 import { ConstantExpressionNode, ExpressionKind, ExpressionResult } from 'types/nodes';
-import { nativeNumber, undefinedSymbol, nativeString, nativeBool, nativeNames, NativeDataType } from 'bcl/lang/lib';
+import { nativeBool, NativeDataType, nativeNames, nativeNumber, nativeString, undefinedSymbol } from 'bcl/lang/lib';
 import { HSymbol, ObjectSymbol, Resolution, SymbolKind } from 'types/scope';
 import { Token } from 'types/token';
 import { res } from 'scope';
@@ -141,6 +141,9 @@ export function getTokenFromExp(exp: ExpressionResult): Token {
       if(group) return getTokenFromExp(group);
       throw new Error('Invalid, Primary expression has no token');
     }
+    case ExpressionKind.ArrayLiteralExpression:
+    case ExpressionKind.ObjectLiteralExpression:
+      return exp.open;
     case ExpressionKind.constantExpression:
       return exp.token;
   }

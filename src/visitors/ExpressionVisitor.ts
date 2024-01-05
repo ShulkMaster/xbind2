@@ -1,7 +1,7 @@
 import BaseVisitor from 'parser/HaibtVisitor';
 import * as H from 'parser/Haibt';
 import * as N from 'types/nodes';
-import { ExpressionKind } from 'types/nodes';
+import { ArrayLiteralExpressionNode, ExpressionKind } from 'types/nodes';
 import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
 import { ReturnType } from 'types/nodes/native';
@@ -382,6 +382,11 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       };
     }
 
+    const indexedExpression = ctx.arrayLiteral();
+    if (indexedExpression?.getChildCount() > 0) {
+      return this.visitArrayLiteral(indexedExpression);
+    }
+
     const constantExpression = ctx.constantExpression();
     if (constantExpression) {
       return this.visitConstantExpression(constantExpression);
@@ -441,5 +446,28 @@ export class ExpressionVisitor extends BaseVisitor<N.ExpressionResult> {
       token: symbolToToken(value.symbol),
       primitiveType: ReturnType.Undefined,
     };
+  };
+
+  visitArrayLiteral = (ctx: H.ArrayLiteralContext): N.ArrayLiteralExpressionNode => {
+    const exp: ArrayLiteralExpressionNode = {
+      kind: ExpressionKind.ArrayLiteralExpression,
+      open: symbolToToken(ctx.OBracnk().symbol),
+      elements: [],
+      close: symbolToToken(ctx.CBracnk().symbol),
+    };
+
+    let argList = ctx.argExpList();
+    while (argList?.getChildCount() > 0) {
+      const expression = argList.expression();
+      const argExp = this.visitExpression(expression);
+      exp.elements.push(argExp);
+      const follow = argList.argExpListFollow();
+      if(follow.getChildCount() < 2) {
+        break;
+      }
+      argList = follow.argExpList();
+    }
+
+    return exp;
   };
 }

@@ -18,6 +18,8 @@ export enum ExpressionKind {
   PostfixExpression,
   PrimaryExpression,
   constantExpression,
+  ArrayLiteralExpression,
+  ObjectLiteralExpression,
 }
 
 export type AssignmentExpressionNode = {
@@ -126,6 +128,23 @@ export type ConstantExpressionNode = {
   primitiveType: ReturnType;
 };
 
+export type ArrayLiteralExpressionNode = {
+  kind: ExpressionKind.ArrayLiteralExpression;
+  open: Token;
+  elements: ExpressionResult[];
+  close: Token;
+};
+
+export type ObjectLiteralExpressionNode = {
+  kind: ExpressionKind.ObjectLiteralExpression;
+  open: Token;
+  elements: {
+    key: Token;
+    value: ExpressionResult;
+  }[];
+  close: Token;
+};
+
 export type ExpressionResult =
   | AssignmentExpressionNode
   | ConditionalExpressionNode
@@ -141,4 +160,6 @@ export type ExpressionResult =
   | PostfixExpressionNode
   | PrimaryExpressionNode
   | ConstantExpressionNode
+  | ArrayLiteralExpressionNode
+  | ObjectLiteralExpressionNode
   ;
