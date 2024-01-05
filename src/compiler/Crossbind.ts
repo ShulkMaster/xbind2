@@ -3,7 +3,7 @@ import { ExpressionCheck } from './ExpressionCheck';
 import { TemplateChecker } from './TemplateChecker';
 import { res } from 'scope';
 import { StyleChecker } from './StyleChecker';
-import { isAssignableTo } from './helper';
+import { getTokenFromExp, isAssignableTo } from './helper';
 
 export class Crossbind {
   public check(program: N.ProgramNode): void {
@@ -36,7 +36,6 @@ export class Crossbind {
 
       if (!validProp.valid) {
         validProp.errors.forEach(e => res.addError(e));
-        continue;
       }
 
       const ref = res.resolve({ symbolName: typeAnnotation.text});
@@ -44,7 +43,15 @@ export class Crossbind {
         continue;
       }
 
-      isAssignableTo(ref, validProp.result);
+      const isAssignable = isAssignableTo(ref, validProp.result, false);
+      const token = getTokenFromExp(initializer);
+      if(!isAssignable) {
+        res.addError({
+          message: `${validProp.result.fqnd} is not assignable to ${ref.fqnd}`,
+          column: token.column,
+          line: token.line,
+        });
+      }
     }
   }
 }

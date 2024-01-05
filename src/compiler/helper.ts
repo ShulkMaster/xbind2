@@ -21,7 +21,7 @@ export function resolveConstantExpression(exp: ConstantExpressionNode): HSymbol 
   }
 }
 
-export function isAssignableTo(expected: Resolution, actual: Resolution): boolean {
+export function isAssignableTo(expected: Resolution, actual: Resolution, report = true): boolean {
   if (!expected || !actual) {
     throw new Error(`Missing symbol ${actual?.name} || ${expected?.name}`);
   }
@@ -31,34 +31,38 @@ export function isAssignableTo(expected: Resolution, actual: Resolution): boolea
   }
 
   if (expected.kind !== actual.kind) {
-    res.addError({
-      message: `${actual.kind} ${actual.fqnd} is not assignable to ${expected.fqnd}`,
-      line: actual.declaration?.line ?? 0,
-      column: actual.declaration?.column ?? 0,
-    });
+    if(report) {
+      res.addError({
+        message: `${actual.kind} ${actual.fqnd} is not assignable to ${expected.fqnd}`,
+        line: actual.declaration?.line ?? 0,
+        column: actual.declaration?.column ?? 0,
+      });
+    }
     return false;
   }
 
   switch (expected.kind) {
     case SymbolKind.Object: {
-      return isObjectAssignable(expected, actual as ObjectSymbol);
+      return isObjectAssignable(expected, actual as ObjectSymbol, report);
     }
     default:
       return false;
   }
 }
 
-function isObjectAssignable(exp: ObjectSymbol, actual: ObjectSymbol): boolean {
+function isObjectAssignable(exp: ObjectSymbol, actual: ObjectSymbol, report = true): boolean {
   let valid = true;
   const expName = exp.name;
   const actualName = actual.name;
-  if(nativeNames.includes(expName as NativeDataType)) {
+  if (nativeNames.includes(expName as NativeDataType)) {
     if(expName !== actualName) {
-      res.addError({
-        message: `${actualName} is not assignable to ${expName}`,
-        line: actual.declaration?.line ?? 0,
-        column: actual.declaration?.column ?? 0,
-      });
+      if(report) {
+        res.addError({
+          message: `${actualName} is not assignable to ${expName}`,
+          line: actual.declaration?.line ?? 0,
+          column: actual.declaration?.column ?? 0,
+        });
+      }
       return false;
     }
     return true;

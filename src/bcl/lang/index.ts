@@ -1,2 +1,2 @@
 export { stringSymbols } from './String';
-export { nativeNumber } from './lib';
+export { nativeNumber, nativeBool } from './lib';

@@ -102,7 +102,7 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
       isVariadicAssignable(resolveExp, args);
       return res.resolve(symbol.returnType);
     }
-    const isAssignable = isAssignableTo(resolveExp, result);
+    const isAssignable = isAssignableTo(resolveExp, result, false);
     if (!isAssignable) {
       res.addError({
         message: `Argument ${expArg.name} of type ${expArg.typeRef.symbolName} is not assignable to ${result.fqnd}`,
