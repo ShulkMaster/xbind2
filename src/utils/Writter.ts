@@ -1,15 +1,18 @@
 import * as E from 'types/nodes';
 import { ReturnType } from 'types/nodes/native';
 import { Logger } from './logger';
+import { LiteralObjectElement } from 'types/nodes';
 
 export class Writer {
 
-  public static writeExpression(expression: E.ExpressionResult): string {
+  public static writeExpression(expression: E.ExpressionResult, pad = 0): string {
     switch (expression.kind) {
       case E.ExpressionKind.constantExpression:
         return this.writeConstantExpression(expression);
       case E.ExpressionKind.PrimaryExpression:
         return this.writePrimaryExpression(expression);
+      case E.ExpressionKind.ObjectLiteralExpression:
+        return this.writeObjectLiteral(expression, pad);
       case E.ExpressionKind.PostfixExpression:
         return this.postfixExpression(expression);
       case E.ExpressionKind.UnaryExpression:
@@ -159,5 +162,21 @@ export class Writer {
     const falseExp = this.writeExpression(falseBranch);
     throw new Error('Unsupported expression');
     // return ` ? ${trueExp} : ${falseExp}`;
+  }
+
+  public static writeObjectLiteral(exp: E.ObjectLiteralExpressionNode, pad: number): string {
+    const { elements, open, close } = exp;
+    const lineFeed = open.line !== close.line ? '\n' : '';
+    const props = elements.map(prop => this.writeProperty(prop, pad + 2));
+    const padding = lineFeed ? ' '.repeat(pad) : '';
+    return `{${lineFeed}${props.join(',\n')}${lineFeed}${padding}}`;
+  }
+
+  public static writeProperty(prop: E.LiteralObjectElement, pad: number): string {
+    const { key, value } = prop;
+    const padding = ' '.repeat(pad);
+    const nameText = key.text;
+    const initializerText = this.writeExpression(value);
+    return `${padding}${nameText}: ${initializerText}`;
   }
 }

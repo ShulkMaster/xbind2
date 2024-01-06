@@ -133,13 +133,15 @@ export type ArrayLiteralExpressionNode = {
   close: Token;
 };
 
+export type LiteralObjectElement = {
+  key: Token;
+  value: ExpressionResult;
+};
+
 export type ObjectLiteralExpressionNode = {
   kind: ExpressionKind.ObjectLiteralExpression;
   open: Token;
-  elements: {
-    key: Token;
-    value: ExpressionResult;
-  }[];
+  elements: LiteralObjectElement[];
   close: Token;
 };
 

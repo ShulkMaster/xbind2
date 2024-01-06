@@ -260,8 +260,11 @@ function literalObjectAssignable(expected: ObjectSymbol | TypeSymbol, actual: Li
   for (const [name, expectedMember] of Object.entries(expected.members)) {
     const actualMember = actual.members[name];
     if (!actualMember) {
+      const expTypeName  = expectedMember?.args
+        ? `() => ${expectedMember.typeRef.symbolName}`
+        : expectedMember.typeRef.symbolName;
       res.addError({
-        message: `Object it missing member ${name} of type ${expectedMember.name}`,
+        message: `Object is missing member ${name} of type ${expTypeName}`,
         line,
         column,
       });

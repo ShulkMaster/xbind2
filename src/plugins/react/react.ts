@@ -77,7 +77,7 @@ export class ReactPlugin {
 
     for (const prop of propsWithDefault) {
       const propName = prop.name.text;
-      const propValue = Writer.writeExpression(prop.initializer!);
+      const propValue = Writer.writeExpression(prop.initializer!, 2);
       printer.appendLine(`const ${propName} = props.${propName} ?? ${propValue};`, 2);
     }
 
