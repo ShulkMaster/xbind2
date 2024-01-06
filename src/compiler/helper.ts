@@ -1,9 +1,19 @@
 import { ReturnType } from 'types/nodes/native';
 import { ConstantExpressionNode, ExpressionKind, ExpressionResult } from 'types/nodes';
 import { nativeBool, NativeDataType, nativeNames, nativeNumber, nativeString, undefinedSymbol } from 'bcl/lang/lib';
-import { HSymbol, LiteralObjectSymbol, LiteralType, ObjectSymbol, Resolution, SymbolKind } from 'types/scope';
+import {
+  HSymbol,
+  LiteralObjectSymbol,
+  LiteralType,
+  ObjectSymbol,
+  Resolution,
+  SymbolKind,
+  TypeSymbol,
+} from 'types/scope';
 import { Token } from 'types/token';
 import { res } from 'scope';
+
+export type Assignor = Resolution | LiteralObjectSymbol;
 
 export function resolveConstantExpression(exp: ConstantExpressionNode): HSymbol {
   switch (exp.primitiveType) {
@@ -32,9 +42,37 @@ export function isLiteralType(type: HSymbol | LiteralObjectSymbol): type is Lite
   return type.kind === LiteralType.Object;
 }
 
-export function isAssignableTo(expected: Resolution, actual: Resolution, report = true): boolean {
+export function getTypeName(type: HSymbol | LiteralObjectSymbol, pad = 0): string {
+  if(!isLiteralType(type)) {
+    return type.name;
+  }
+
+  const members = Object.entries(type.members);
+  const limit = Math.min(8, members.length);
+  const ss: string[] = [];
+  for (let x = 0; x < limit; x++) {
+    const [name, member] = members[x];
+    const memberPad = ' '.repeat(pad + 2);
+    if (member.type.kind === LiteralType.Object) {
+      ss.push(`${memberPad}${name}: ${getTypeName(member.type, pad + 2)}\n`);
+      continue;
+    }
+    ss.push(`${memberPad}${name}: ${member.type.name},\n`);
+  }
+  if(limit < members.length) {
+    ss.push(`${' '.repeat(pad + 2)}... and others ${members.length - limit}\n`);
+  }
+  const closingPad = ' '.repeat(pad);
+  return `{\n${ss.join('')}${closingPad}}`;
+}
+
+export function isAssignableTo(expected: Resolution, actual: Assignor, report = true): boolean {
   if (!expected || !actual) {
-    throw new Error(`Missing symbol ${actual?.name} || ${expected?.name}`);
+    throw new Error(`Missing symbols actual[${actual}] expected [${expected?.name}]`);
+  }
+
+  if(isLiteralType(actual)) {
+    return isLiteralObjectAssignableTo(expected, actual);
   }
 
   if (expected.fqnd === actual.fqnd) {
@@ -179,8 +217,7 @@ export function isLiteralObjectAssignableTo(expected: Resolution, actual: Litera
       return isLiteralObjectAssignableTo(ref, actual);
     }
     case SymbolKind.Type:
-      message = 'Literal objects cannot be assigned to types';
-      break;
+      return literalObjectAssignable(expected, actual);
     case SymbolKind.Function:
       message = 'Literal objects cannot be assigned to functions';
       break;
@@ -192,7 +229,7 @@ export function isLiteralObjectAssignableTo(expected: Resolution, actual: Litera
   return false;
 }
 
-function literalObjectAssignable(expected: ObjectSymbol, actual: LiteralObjectSymbol): boolean {
+function literalObjectAssignable(expected: ObjectSymbol | TypeSymbol, actual: LiteralObjectSymbol): boolean {
   const line = actual.declaration.line;
   const column = actual.declaration.column;
 

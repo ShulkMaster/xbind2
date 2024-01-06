@@ -4,7 +4,7 @@ import * as S from 'types/scope';
 import { HSymbol, Resolution, SymbolKind } from 'types/scope';
 import { res } from 'scope';
 import { ExpressionCheck } from './ExpressionCheck';
-import { isAssignableTo } from './helper';
+import { getTypeName, isAssignableTo } from './helper';
 import { ArgState } from 'bcl/lang/lib';
 
 function checkCompMember(member: Token, symbol: S.ObjectSymbol): Resolution {
@@ -88,7 +88,7 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
       });
       continue;
     }
-
+    const resolveExp = res.resolve(expArg.typeRef);
     const {valid, result, errors} = checker.checkExpression(arg);
 
     if (!valid) {
@@ -97,15 +97,16 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
     }
     const line = result.declaration?.line ?? 0;
     const column = result.declaration?.column ?? 0;
-    const resolveExp = res.resolve(expArg.typeRef);
     if (expArg.variadic) {
       isVariadicAssignable(resolveExp, args);
       return res.resolve(symbol.returnType);
     }
+
     const isAssignable = isAssignableTo(resolveExp, result, false);
     if (!isAssignable) {
+      const typeName = getTypeName(result);
       res.addError({
-        message: `Argument ${expArg.name} of type ${expArg.typeRef.symbolName} is not assignable to ${result.fqnd}`,
+        message: `Argument ${expArg.name} of type ${typeName} is not assignable to ${expArg.typeRef.symbolName}`,
         column,
         line,
       });

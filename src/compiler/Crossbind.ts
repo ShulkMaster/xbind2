@@ -3,7 +3,7 @@ import { ExpressionCheck } from './ExpressionCheck';
 import { TemplateChecker } from './TemplateChecker';
 import { res } from 'scope';
 import { StyleChecker } from './StyleChecker';
-import { getTokenFromExp, isAssignableTo, isLiteralObjectAssignableTo, isLiteralType } from './helper';
+import { getTokenFromExp, getTypeName, isAssignableTo } from './helper';
 
 export class Crossbind {
   public check(program: N.ProgramNode): void {
@@ -73,15 +73,12 @@ export class Crossbind {
       }
 
       const result = validProp.result;
-      if(isLiteralType(result)) {
-        isLiteralObjectAssignableTo(ref, result);
-        continue;
-      }
       const isAssignable = isAssignableTo(ref, result, false);
       const token = getTokenFromExp(initializer);
       if(!isAssignable) {
+        const typeName = getTypeName(result);
         res.addError({
-          message: `${result.fqnd} is not assignable to ${ref.fqnd}`,
+          message: `${ref.fqnd} cannot be assigned by ${typeName}`,
           column: token.column,
           line: token.line,
         });
