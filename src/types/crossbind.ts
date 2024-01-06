@@ -1,12 +1,12 @@
 import { SimpleError } from './logging';
 import { ProgramContext } from 'parser/Haibt';
-import { ProgramNode, UsePath } from './nodes';
-import { HSymbol } from './scope';
+import { ProgramNode } from './nodes';
+import { HSymbol, LiteralObjectSymbol } from './scope';
 
 export type ExpressionCheckResult = {
   valid: boolean;
   errors: SimpleError[];
-  result: HSymbol;
+  result: HSymbol | LiteralObjectSymbol;
 };
 
 export type ParseUnit = {
@@ -21,10 +21,3 @@ export type VisitedUnit = {
   source: string;
   fileName: string;
 };
-
-export type StyleSymbol = {
-  type: 'style';
-  name: string;
-  classNames: Set<string>;
-  scope: UsePath;
-}

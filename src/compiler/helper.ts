@@ -1,24 +1,35 @@
 import { ReturnType } from 'types/nodes/native';
 import { ConstantExpressionNode, ExpressionKind, ExpressionResult } from 'types/nodes';
 import { nativeBool, NativeDataType, nativeNames, nativeNumber, nativeString, undefinedSymbol } from 'bcl/lang/lib';
-import { HSymbol, ObjectSymbol, Resolution, SymbolKind } from 'types/scope';
+import { HSymbol, LiteralObjectSymbol, LiteralType, ObjectSymbol, Resolution, SymbolKind } from 'types/scope';
 import { Token } from 'types/token';
 import { res } from 'scope';
 
 export function resolveConstantExpression(exp: ConstantExpressionNode): HSymbol {
   switch (exp.primitiveType) {
     case ReturnType.Void:
-      return { ...undefinedSymbol, declaration: exp.token };
+      return {...undefinedSymbol, declaration: exp.token};
     case ReturnType.Number:
-      return { ...nativeNumber, declaration: exp.token};
+      return {...nativeNumber, declaration: exp.token};
     case ReturnType.String:
-      return { ...nativeString, declaration: exp.token};
+      return {...nativeString, declaration: exp.token};
     case ReturnType.Boolean:
-      return { ...nativeBool, declaration: exp.token};
+      return {...nativeBool, declaration: exp.token};
     case ReturnType.Undefined:
     default:
-      return { ...undefinedSymbol, declaration: exp.token};
+      return {...undefinedSymbol, declaration: exp.token};
   }
+}
+
+export function asName(token: string | Token): string {
+  if (typeof token === 'string') {
+    return token;
+  }
+  return token.text;
+}
+
+export function isLiteralType(type: HSymbol | LiteralObjectSymbol): type is LiteralObjectSymbol {
+  return type.kind === LiteralType.Object;
 }
 
 export function isAssignableTo(expected: Resolution, actual: Resolution, report = true): boolean {
@@ -31,7 +42,7 @@ export function isAssignableTo(expected: Resolution, actual: Resolution, report 
   }
 
   if (expected.kind !== actual.kind) {
-    if(report) {
+    if (report) {
       res.addError({
         message: `${actual.kind} ${actual.fqnd} is not assignable to ${expected.fqnd}`,
         line: actual.declaration?.line ?? 0,
@@ -55,8 +66,8 @@ function isObjectAssignable(exp: ObjectSymbol, actual: ObjectSymbol, report = tr
   const expName = exp.name;
   const actualName = actual.name;
   if (nativeNames.includes(expName as NativeDataType)) {
-    if(expName !== actualName) {
-      if(report) {
+    if (expName !== actualName) {
+      if (report) {
         res.addError({
           message: `${actualName} is not assignable to ${expName}`,
           line: actual.declaration?.line ?? 0,
@@ -72,11 +83,11 @@ function isObjectAssignable(exp: ObjectSymbol, actual: ObjectSymbol, report = tr
     const actualMember = actual.members[member.name];
     const line = actual.declaration?.line ?? 0;
     const column = actual.declaration?.column ?? 0;
-    let message  = '';
+    let message = '';
 
     if (!actualMember) {
       message = `Property ${member.name} is missing in type ${actual.name}`;
-      res.addError({ message, line, column });
+      res.addError({message, line, column});
       valid = false;
       continue;
     }
@@ -122,23 +133,23 @@ export function getTokenFromExp(exp: ExpressionResult): Token {
     case ExpressionKind.UnaryExpression:
       return exp.operator;
     case ExpressionKind.PostfixExpression: {
-      if(exp.primary) {
+      if (exp.primary) {
         return getTokenFromExp(exp.primary);
       }
       let token = exp.indexed?.open;
-      if(token) return token;
+      if (token) return token;
       token = exp.member;
-      if(token) return token;
+      if (token) return token;
       token = exp.operator;
-      if(token) return token;
+      if (token) return token;
       token = exp.call?.open;
-      return token ?? { text: '', line: 0, column: 0} as Token;
+      return token ?? {text: '', line: 0, column: 0} as Token;
     }
     case ExpressionKind.PrimaryExpression: {
       const id = exp.identifier;
-      if(id) return id;
+      if (id) return id;
       const group = exp.groupExpression?.expression;
-      if(group) return getTokenFromExp(group);
+      if (group) return getTokenFromExp(group);
       throw new Error('Invalid, Primary expression has no token');
     }
     case ExpressionKind.ArrayLiteralExpression:
@@ -147,4 +158,79 @@ export function getTokenFromExp(exp: ExpressionResult): Token {
     case ExpressionKind.constantExpression:
       return exp.token;
   }
+}
+
+export function isLiteralObjectAssignableTo(expected: Resolution, actual: LiteralObjectSymbol): boolean {
+  const line = actual.declaration.line;
+  const column = actual.declaration.column;
+  let message = '';
+  if (!expected) {
+    message = 'Missing expected type declaration';
+    res.addError({message, line, column});
+    return false;
+  }
+
+  switch (expected.kind) {
+    case SymbolKind.Object: {
+      return literalObjectAssignable(expected, actual);
+    }
+    case SymbolKind.Variable: {
+      const ref = res.resolve(expected.typeRef);
+      return isLiteralObjectAssignableTo(ref, actual);
+    }
+    case SymbolKind.Type:
+      message = 'Literal objects cannot be assigned to types';
+      break;
+    case SymbolKind.Function:
+      message = 'Literal objects cannot be assigned to functions';
+      break;
+    case SymbolKind.Style:
+      message = 'Literal objects cannot be assigned to styles';
+      break;
+  }
+  res.addError({message, line, column});
+  return false;
+}
+
+function literalObjectAssignable(expected: ObjectSymbol, actual: LiteralObjectSymbol): boolean {
+  const line = actual.declaration.line;
+  const column = actual.declaration.column;
+
+  let valid = true;
+  // members in the literal object that might not exist the expected type
+  for (const [name, actualMember] of Object.entries(actual.members)) {
+    const expectedMember = expected.members[name];
+    if (!expectedMember) {
+      res.addError({
+        message: `Object should only declare members of type ${expected.name}, and ${name} is not a declared member`,
+        line,
+        column,
+      });
+      valid = false;
+      continue;
+    }
+
+    const expectedType = res.resolve(expectedMember.typeRef);
+    const actualType = actualMember.type;
+    if (isLiteralType(actualType)) {
+      valid = isLiteralObjectAssignableTo(expectedType, actualType) && valid;
+      continue;
+    }
+    valid = isAssignableTo(expectedType, actualType) && valid;
+  }
+
+  // members in the expected type that might not exist in the literal object
+  for (const [name, expectedMember] of Object.entries(expected.members)) {
+    const actualMember = actual.members[name];
+    if (!actualMember) {
+      res.addError({
+        message: `Object it missing member ${name} of type ${expectedMember.name}`,
+        line,
+        column,
+      });
+      valid = false;
+    }
+  }
+
+  return valid;
 }

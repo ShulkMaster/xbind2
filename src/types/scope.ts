@@ -1,6 +1,6 @@
 import { UsePath } from './nodes';
 import { Token } from './token';
-import { ArgState } from '../bcl/lang/lib';
+import { ArgState } from 'bcl/lang/lib';
 
 export const enum SymbolKind {
   Style = 'style',
@@ -34,8 +34,8 @@ export type BaseSymbol = {
 
 export type StyleSymbol = {
   kind: SymbolKind.Style;
-  name: Token;
-  classes: Token[];
+  declaration: Token;
+  classes: Map<string, Token>;
 } & BaseSymbol;
 
 export type ArgList = {
@@ -79,6 +79,23 @@ export type ObjectSymbol = {
   propertySymbol?: SymbolRef;
   members: { [member: string]: Member };
 } & BaseSymbol;
+
+export const enum LiteralType {
+  Object = 'objectLiteral',
+  Array = 'arrayLiteral',
+}
+
+export type LiteralObjectSymbol = {
+  kind: LiteralType.Object;
+  declaration: Token;
+  members: {
+    [member: string]: {
+      name: Token;
+      // if it has args then this is the return type
+      type: HSymbol | LiteralObjectSymbol;
+    };
+  };
+};
 
 export type HSymbol =
   StyleSymbol |

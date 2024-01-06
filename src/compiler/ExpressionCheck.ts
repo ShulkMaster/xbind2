@@ -2,8 +2,8 @@ import { ExpressionCheckResult } from 'types/crossbind';
 import * as N from 'types/nodes';
 import { res } from 'scope/Resolver';
 import { undefinedSymbol } from 'bcl/lang/lib';
-import { resolveConstantExpression } from './helper';
-import { HSymbol, Resolution } from 'types/scope';
+import { asName, getTokenFromExp, resolveConstantExpression } from './helper';
+import { HSymbol, LiteralObjectSymbol, LiteralType, Resolution } from 'types/scope';
 import { expCheckCall, expCheckMember } from './ExpResolver';
 
 export class ExpressionCheck {
@@ -16,6 +16,10 @@ export class ExpressionCheck {
       }
       case N.ExpressionKind.PrimaryExpression:
         return this.checkPrimaryExpression(expression);
+      case N.ExpressionKind.ArrayLiteralExpression:
+       throw new Error(`Not implemented ${expression.kind}`);
+      case N.ExpressionKind.ObjectLiteralExpression:
+        return this.checkObjectLiteral(expression);
       case N.ExpressionKind.PostfixExpression:
         return this.checkPostfixExpression(expression);
       case N.ExpressionKind.AssignmentExpression:
@@ -29,7 +33,7 @@ export class ExpressionCheck {
       case N.ExpressionKind.MultiplicativeExpression:
       case N.ExpressionKind.CastExpression:
       case N.ExpressionKind.UnaryExpression:
-        throw new Error('Not implemented');
+        throw new Error(`Not implemented ${expression.kind}`);
       default:
         throw new Error('Invalid expression');
     }
@@ -75,6 +79,11 @@ export class ExpressionCheck {
       return check;
     }
 
+    const kind = check.result.kind;
+    if (kind === LiteralType.Object) {
+      throw new Error('How is this possible?');
+    }
+
     return this.checkPostfixFollow(exp, check.result);
   }
 
@@ -100,6 +109,42 @@ export class ExpressionCheck {
 
     return {
       result: undefinedSymbol, valid: false, errors: [],
+    };
+  }
+
+  checkObjectLiteral(exp: N.ObjectLiteralExpressionNode): ExpressionCheckResult {
+    const {elements} = exp;
+    const props = new Set<string>();
+    const symbol: LiteralObjectSymbol = {
+      kind: LiteralType.Object,
+      declaration: getTokenFromExp(exp),
+      members: {},
+    };
+
+    for (const { key, value} of elements) {
+      const keyName = asName(key);
+      const check = this.checkExpression(value);
+      if (props.has(keyName)) {
+        res.addError({
+          message: `Duplicate property ${keyName}`,
+          column: key.column,
+          line: key.line,
+        });
+        continue;
+      }
+      props.add(asName(key));
+      if (!check.valid) continue;
+
+      symbol.members[keyName] = {
+        name: key,
+        type: check.result,
+      };
+    }
+
+    return {
+      result: symbol,
+      valid: true,
+      errors: [],
     };
   }
 }
