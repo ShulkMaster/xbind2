@@ -1,9 +1,9 @@
 import * as N from 'types/nodes';
+import { DirectiveType, ExpressionKind } from 'types/nodes';
 import * as E from 'types/nodes/expression';
 import { res } from 'scope';
 import { ReturnType } from 'types/nodes/native';
 import { ExpressionCheck } from './ExpressionCheck';
-import { DirectiveType, ExpressionKind } from 'types/nodes';
 
 export class TemplateChecker {
   private readonly expChecker = new ExpressionCheck();
@@ -27,7 +27,7 @@ export class TemplateChecker {
     }
 
     tag.attributes.forEach(prop => this.checkAttribute(prop));
-    tag.directives.forEach(directive => this.checkDirective(directive));
+    this.checkDirectives(tag.directives);
     tag.children.forEach(child => {
       switch (child.type) {
         case 'charData':
@@ -86,7 +86,7 @@ export class TemplateChecker {
       return;
     }
 
-    if(value.primitiveType !== ReturnType.String) {
+    if (value.primitiveType !== ReturnType.String) {
       res.addError({
         message: `${dirName} directive must have a constant string expression`,
         line: name.line,
@@ -96,7 +96,7 @@ export class TemplateChecker {
     }
 
     const text = value.token.text;
-    if(text.length <= 2) {
+    if (text.length <= 2) {
       res.addError({
         message: `${dirName} directive string value must not be empty and point to a valid template`,
         line: name.line,
@@ -105,28 +105,48 @@ export class TemplateChecker {
     }
   }
 
-  private checkDirective(directive: N.DirectiveNode): void {
-    const {name, value, kind} = directive;
-    switch (kind) {
-      case DirectiveType.if:
-        if (value.kind === ExpressionKind.constantExpression) {
-          const reason = this.constanMsg(value);
-          res.addError({
-            message: `IF directive has an invalid expression: ${reason}`,
-            line: name.line,
-            column: name.column,
-          });
-          return;
+  private checkDirectives(directives: N.DirectiveNode[]): void {
+    const setDirectives = new Set<DirectiveType>();
+    for (const directive of directives) {
+      if (setDirectives.has(directive.kind)) {
+        res.addError({
+          message: `Duplicate directive ${directive.kind.toUpperCase()}`,
+          line: directive.name.line,
+          column: directive.name.column,
+        });
+      }
+      setDirectives.add(directive.kind);
+      const {name, value, kind} = directive;
+      switch (kind) {
+        case DirectiveType.if: {
+          if (value.kind === ExpressionKind.constantExpression) {
+            const reason = this.constanMsg(value);
+            res.addError({
+              message: `IF directive has an invalid expression: ${reason}`,
+              line: name.line,
+              column: name.column,
+            });
+            return;
+          }
+          const other = directives.find(d => d.kind !== DirectiveType.if && d.kind !== DirectiveType.else);
+          if (other) {
+            res.addError({
+              message: 'IF directive can only be used with ELSE directive',
+              line: name.line,
+              column: name.column,
+            });
+          }
+          this.expChecker.checkExpression(value);
         }
-        this.expChecker.checkExpression(value);
-        break;
-      case DirectiveType.else:
-      case DirectiveType.template:
-        this.checkConstantDirective(directive);
-        return;
-      case DirectiveType.switch:
-      case DirectiveType.case:
-        break;
+          break;
+        case DirectiveType.else:
+        case DirectiveType.template:
+          this.checkConstantDirective(directive);
+          return;
+        case DirectiveType.switch:
+        case DirectiveType.case:
+          break;
+      }
     }
   }
 

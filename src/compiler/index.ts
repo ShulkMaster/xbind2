@@ -43,8 +43,13 @@ export function compile(source: string, option: CompileOptions): void {
     return;
   }
 
-  visitedUnits.forEach(unit => Logger.debug(unit.program));
   res.triggerFill();
+  if (res.checkErrors.length > 0) {
+    Logger.compileErrors(res.checkErrors);
+    Logger.error(`Compilation failure, found ${res.checkErrors.length} errors`);
+    return;
+  }
+  visitedUnits.forEach(unit => Logger.debug(unit.program));
   const plugin = option.plugin === 'react'
     ? new ReactPlugin(option.output)
     : new VuePlugin(option.output);
