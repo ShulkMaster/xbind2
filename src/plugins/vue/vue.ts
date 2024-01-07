@@ -2,14 +2,14 @@ import * as N from 'types/nodes';
 import { ConstantExpressionNode, DirectiveType, ExpressionKind, TypeDeclarationNode } from 'types/nodes';
 import { Logger, makeDirs, Printer, Writer } from 'utils';
 import path from 'path';
-import { Resolver, TemplateSymbols } from 'scope';
+import { ComponentTable, Resolver } from 'scope';
 import { ReturnType } from 'types/nodes/native';
 import { StyleWriter } from 'utils/StyleWriter';
 
 export class VuePlugin {
   public readonly outDir: string;
   private resolver: Resolver = {} as Resolver;
-  private t: TemplateSymbols = {} as TemplateSymbols;
+  private currentComponent: ComponentTable = {} as ComponentTable;
 
   public constructor(dir: string) {
     this.outDir = dir;
@@ -54,8 +54,7 @@ export class VuePlugin {
   private writeComponent(component: N.ComponentNode, program: N.ProgramNode, printer: Printer): void {
     const imports = this.typesToImport(program.types);
     const baseDir = path.join(this.outDir, ...program.scope);
-    this.t = new TemplateSymbols(component.template);
-    this.t.fill();
+    this.currentComponent = this.resolver.resolveComponent(component.scope, component.name.text);
 
     this.writeScript(component, imports, printer);
     printer.crlf();
@@ -171,7 +170,8 @@ export class VuePlugin {
 
   private writeTemplateDirective(directive: N.DirectiveNode, printer: Printer): void {
     const templateName = directive.value as ConstantExpressionNode;
-    const ifPair = this.t.ifElsePairs.get(templateName.token.text)!;
+    const table = this.currentComponent.templateSymbols;
+    const ifPair = table.ifElsePairs.get(templateName.token.text)!;
 
     if (ifPair.areContiguous) {
       printer.append(' v-else');

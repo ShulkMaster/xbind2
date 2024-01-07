@@ -1,6 +1,6 @@
 import { ModuleTable, res } from 'scope';
 import { ChildNode, ComponentNode, ExpressionKind, ExpressionResult, ProgramNode } from 'types/nodes';
-import { ReturnType } from '../types/nodes/native';
+import { ReturnType } from 'types/nodes/native';
 
 export class TemplateReplacer {
 
@@ -55,7 +55,7 @@ export class TemplateReplacer {
         if(primaryId && member) {
           // get the fqnd of the style
           const style = table.getLocalStyle(primaryId.text);
-          const className = style?.styles.classNames.has(member.text);
+          const className = style?.styles.has(member.text);
           if (className) {
             member.text = `"${member.text}"`;
             return {

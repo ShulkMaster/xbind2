@@ -51,6 +51,11 @@ export class Resolver {
     return this.modules.get(scopeString);
   }
 
+  public triggerFill(): void {
+    for (const module of this.modules.values()) {
+      module.components.forEach(comp => comp.templateSymbols.fill());
+    }
+  }
 
   public resolve(search: SearchContext): Resolution {
     const global = this.resolveGlobal(search);

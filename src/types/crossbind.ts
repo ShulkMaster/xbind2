@@ -1,11 +1,9 @@
-import { SimpleError } from './logging';
 import { ProgramContext } from 'parser/Haibt';
 import { ProgramNode } from './nodes';
 import { HSymbol, LiteralObjectSymbol } from './scope';
 
 export type ExpressionCheckResult = {
   valid: boolean;
-  errors: SimpleError[];
   result: HSymbol | LiteralObjectSymbol;
 };
 

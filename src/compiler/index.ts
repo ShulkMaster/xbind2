@@ -26,7 +26,7 @@ export function compile(source: string, option: CompileOptions): void {
   const parseUnits = sourceFiles.map(parseHaibt);
   const totalErrors = parseUnits.reduce((acc, unit) => acc + unit.errors, 0);
   if (totalErrors > 0) {
-    Logger.error(`Unable to compile, found ${totalErrors} errors`);
+    Logger.error(`Unable to compile, found ${totalErrors} syntax errors`);
     return;
   }
 
@@ -44,6 +44,7 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   visitedUnits.forEach(unit => Logger.debug(unit.program));
+  res.triggerFill();
   const plugin = option.plugin === 'react'
     ? new ReactPlugin(option.output)
     : new VuePlugin(option.output);

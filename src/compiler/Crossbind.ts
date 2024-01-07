@@ -50,8 +50,8 @@ export class Crossbind {
   private checkComponent(comp: N.ComponentNode): void {
     const checker = new ExpressionCheck();
     this.checkProperties(comp, checker);
-    // const templateChecker = new TemplateChecker(this.errors, p, this.res);
-    // templateChecker.checkTemplate(template);
+    const templateChecker = new TemplateChecker();
+    templateChecker.checkTemplate(comp.template);
   }
 
   private checkProperties(comp: N.ComponentNode, checker: ExpressionCheck): void {
@@ -63,10 +63,6 @@ export class Crossbind {
 
       const ref = res.resolve({ symbolName: typeAnnotation.text});
       const validProp = checker.checkExpression(initializer);
-
-      if (!validProp.valid) {
-        validProp.errors.forEach(e => res.addError(e));
-      }
 
       if(!ref) {
         continue;

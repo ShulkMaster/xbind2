@@ -12,7 +12,7 @@ export class ExpressionCheck {
     switch (expression.kind) {
       case N.ExpressionKind.constantExpression: {
         const result = resolveConstantExpression(expression);
-        return {result, valid: true, errors: []};
+        return {result, valid: true };
       }
       case N.ExpressionKind.PrimaryExpression:
         return this.checkPrimaryExpression(expression);
@@ -53,24 +53,18 @@ export class ExpressionCheck {
     const resolution = res.resolve({symbolName: identifier.text});
 
     if (!resolution) {
+      res.addError({
+        message: `Unresolved identifier ${identifier.text}`,
+        column: identifier.column,
+        line: identifier.line,
+      });
       return {
         valid: false,
-        errors: [
-          {
-            message: `Unresolved identifier ${identifier.text}`,
-            column: identifier.column,
-            line: identifier.line,
-          },
-        ],
         result: undefinedSymbol,
       };
     }
 
-    return {
-      valid: true,
-      errors: [],
-      result: resolution,
-    };
+    return { valid: true, result: resolution };
   }
 
   checkPostfixExpression(exp: N.PostfixExpressionNode): ExpressionCheckResult {
@@ -104,12 +98,10 @@ export class ExpressionCheck {
     }
 
     if (check) {
-      return {valid: true, errors: [], result: check};
+      return {valid: true, result: check};
     }
 
-    return {
-      result: undefinedSymbol, valid: false, errors: [],
-    };
+    return { result: undefinedSymbol, valid: false };
   }
 
   checkObjectLiteral(exp: N.ObjectLiteralExpressionNode): ExpressionCheckResult {
@@ -141,10 +133,6 @@ export class ExpressionCheck {
       };
     }
 
-    return {
-      result: symbol,
-      valid: true,
-      errors: [],
-    };
+    return { result: symbol,  valid: true };
   }
 }

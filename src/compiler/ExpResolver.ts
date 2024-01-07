@@ -89,12 +89,11 @@ export function checkCallArgs(args: ExpressionResult[], symbol: S.FunctionSymbol
       continue;
     }
     const resolveExp = res.resolve(expArg.typeRef);
-    const {valid, result, errors} = checker.checkExpression(arg);
-
+    const {valid, result} = checker.checkExpression(arg);
     if (!valid) {
-      errors.forEach(e => res.addError(e));
       continue;
     }
+
     const line = result.declaration?.line ?? 0;
     const column = result.declaration?.column ?? 0;
     if (expArg.variadic) {
@@ -123,9 +122,9 @@ function isVariadicAssignable(expected: Resolution, args: ExpressionResult[]): v
     const {valid, result, errors} = checker.checkExpression(arg);
 
     if (!valid) {
-      errors.forEach(e => res.addError(e));
       continue;
     }
+
     isAssignableTo(expected, result);
   }
 }

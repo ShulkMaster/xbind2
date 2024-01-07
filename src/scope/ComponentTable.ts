@@ -10,7 +10,6 @@ export class ComponentTable {
   constructor(component: ComponentNode) {
     this.componentNode = component;
     this.templateSymbols = new TemplateSymbols(component.template);
-    this.templateSymbols.fill();
   }
 
   public resolve(search: SearchContext): HSymbol | undefined {
