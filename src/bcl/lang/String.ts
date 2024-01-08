@@ -1,11 +1,13 @@
 import { HSymbol } from 'types/scope';
 import {
+  addMember,
   ArgState,
   createMethodFor,
-  addMember,
+  nativeArray,
   nativeBool,
   nativeNumber,
-  nativeString, toSymbolRef,
+  nativeString,
+  toSymbolRef,
 } from './lib';
 
 addMember(nativeString, [
@@ -41,180 +43,108 @@ createMethodFor(nativeString, 'includes', [
   },
 ], {ret: nativeBool});
 
-/*
-slice: {
-  name: 'slice',
-    scope: [],
-    fqnd: 'string.slice',
-    readonly: true,
-    public: true,
-},
-split: {
-  name: 'split',
-    scope: [],
-    fqnd: 'string.split',
-    readonly: true,
-    public: true,
-},
-toLowerCase: {
-  name: 'toLowerCase',
-    scope: [],
-    fqnd: 'string.toLowerCase',
-    readonly: true,
-    public: true,
-},
-toUpperCase: {
-  name: 'toUpperCase',
-    scope: [],
-    fqnd: 'string.toUpperCase',
-    readonly: true,
-    public: true,
-},
-trim: {
-  name: 'trim',
-    scope: [],
-    fqnd: 'string.trim',
-    readonly: true,
-    public: true,
-},
-
-const concat: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('concat'),
-  varArgs: true,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
+createMethodFor(nativeString, 'slice', [
+  {
+    name: 'indexStart',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeNumber),
+    variadic: false,
   },
-  args: [
-    {
-      array: true,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.String,
-      },
-      name: 'strings',
-    },
-  ],
-};
-
-const includes: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('includes'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.Boolean,
+  {
+    name: 'indexEnd',
+    state: ArgState.Optional,
+    typeRef: toSymbolRef(nativeNumber),
+    variadic: false,
   },
-  args: [
+], {ret: nativeString});
+
+createMethodFor(nativeString, 'charAt', [
+  {
+    name: 'charAt',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
+  },
+], {ret: nativeString});
+
+createMethodFor(nativeString, 'indexOf', [
+  {
+    name: 'searchString',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
+  },
+  {
+    name: 'position',
+    state: ArgState.Optional,
+    typeRef: toSymbolRef(nativeNumber),
+    variadic: false,
+  },
+], {ret: nativeNumber});
+
+createMethodFor(nativeString, 'lastIndexOf', [
+  {
+    name: 'searchString',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
+  },
+  {
+    name: 'position',
+    state: ArgState.Optional,
+    typeRef: toSymbolRef(nativeNumber),
+    variadic: false,
+  },
+], {ret: nativeNumber});
+
+createMethodFor(nativeString, 'replace', [
     {
-      name: 'searchString',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.String,
-      },
+      name: 'pattern',
+      state: ArgState.Required,
+      typeRef: toSymbolRef(nativeString),
+      variadic: false,
     },
     {
-      name: 'position',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.Number,
-      },
-    }
-  ],
-};
-
-const slice: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('slice'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
-  },
-  args: [
-    {
-      name: 'start',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.Number,
-      },
+      name: 'replacement',
+      state: ArgState.Required,
+      typeRef: toSymbolRef(nativeString),
+      variadic: false,
     },
-    {
-      name: 'end',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.Number,
-      },
-    }
-  ],
-};
-
-const split: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('split'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
+  ], {ret: nativeString},
+);
+createMethodFor(nativeString, 'split', [
+  {
+    name: 'separator',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
   },
-  args: [
-    {
-      name: 'separator',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.String,
-      },
-    },
-    {
-      name: 'limit',
-      array: false,
-      type: {
-        type: 'typeRef',
-        name: ReturnType.Number,
-      },
-    }
-  ],
-};
-
-const toLowerCase: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('toLowerCase'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
+  {
+    name: 'limit',
+    state: ArgState.Optional,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
   },
-  args: [],
-};
+], {ret: nativeArray});
 
-const toUpperCase: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('toUpperCase'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
+createMethodFor(nativeString, 'substring', [
+  {
+    name: 'indexStart',
+    state: ArgState.Required,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
   },
-  args: [],
-};
+  {
+    name: 'indexEnd',
+    state: ArgState.Optional,
+    typeRef: toSymbolRef(nativeString),
+    variadic: false,
+  },
+], {ret: nativeString});
 
-const trim: NativeFunctionSymbol = {
-  kind: NativeSymbolKind.function,
-  name: prefix('trim'),
-  varArgs: false,
-  returnType: {
-    type: 'typeRef',
-    name: ReturnType.String,
-  },
-  args: [],
-};
-*/
+createMethodFor(nativeString, 'toLowerCase', [], {ret: nativeString});
+createMethodFor(nativeString, 'toUpperCase', [], {ret: nativeString});
+createMethodFor(nativeString, 'trim', [], {ret: nativeString});
 
 export const stringSymbols: HSymbol = nativeString;
 
