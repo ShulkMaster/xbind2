@@ -54,8 +54,8 @@ export class TemplateReplacer {
 
         if(primaryId && member) {
           // get the fqnd of the style
-          const style = table.getLocalStyle(primaryId.text);
-          const className = style?.styles.has(member.text);
+          const style = table.styles.getStyle(primaryId.text);
+          const className = style?.classes.has(member.text);
           if (className) {
             member.text = `"${member.text}"`;
             return {

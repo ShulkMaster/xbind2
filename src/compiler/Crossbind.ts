@@ -16,7 +16,7 @@ export class Crossbind {
 
     const checker = new StyleChecker();
     checker.check(styles);
-    checker.getErrors().forEach(res.addError);
+    checker.getErrors().forEach(e => res.addError(e));
   }
 
   private checkTypes(types: N.TypeDeclarationNode[]): void {

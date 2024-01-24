@@ -9,10 +9,12 @@ export class ModuleTable {
   public readonly scope: UsePath;
   private readonly symbols: SymbolTable;
   public readonly components = new Map<string, ComponentTable>();
+  public readonly styles: StyleTable;
 
   constructor(scope: UsePath) {
     this.scope = scope;
     this.symbols = new SymbolTable(scope);
+    this.styles = new StyleTable(scope);
   }
 
   registerProgram(program: ProgramNode): void {
@@ -23,15 +25,8 @@ export class ModuleTable {
     }
 
     for (const style of program.styles) {
-      const fqName = [...this.scope, style.name.text];
-      const table = new StyleTable(fqName);
-      table.registerStyle(style);
-      //this.styles.set(fqName.join('.'), table);
+      this.styles.registerStyle(style);
     }
-  }
-
-  public getLocalStyle(name: string): StyleTable | undefined {
-    return new StyleTable([...this.scope, name]);
   }
 
   public resolve(search: SearchContext): HSymbol | undefined {

@@ -3,7 +3,7 @@ import { StyleSymbol, SymbolKind } from 'types/scope';
 import { Token } from 'types/token';
 
 export class StyleTable {
-  public readonly styles = new Map<string, StyleSymbol>();
+  private readonly styles = new Map<string, StyleSymbol>();
   public readonly scope: UsePath;
 
   constructor(scope: UsePath) {
@@ -31,5 +31,9 @@ export class StyleTable {
     for (const subStyle of classNode.subClasses) {
       this.registerClass(classes, subStyle);
     }
+  }
+
+  public getStyle(name: string): StyleSymbol | undefined {
+    return this.styles.get(name);
   }
 }
