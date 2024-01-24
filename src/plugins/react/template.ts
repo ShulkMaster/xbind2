@@ -139,8 +139,18 @@ export class Template {
     }
 
     if (isRootTag) {
+      if(tag.openTag.text === 'children') {
+        printer.appendLine('props.children');
+        return;
+      }
       printer.appendLine('(');
     }
+
+    if(tag.openTag.text === 'children') {
+      printer.appendLine('{ props.children }', indent);
+      return;
+    }
+
     printer.append(`<${tag.openTag.text}`, indent);
     this.writeAttributes(tag, printer);
     const hasChildren = tag.children.length > 0;

@@ -4,6 +4,8 @@ import path from 'path';
 import { ComponentTable, Resolver } from 'scope';
 import { StyleWriter } from 'utils/StyleWriter';
 import { Template } from './template';
+import { MemberNode } from 'types/nodes';
+import { Token } from 'types/token';
 
 export class ReactPlugin {
   private readonly outDir: string;
@@ -29,12 +31,24 @@ export class ReactPlugin {
     const hasStyles = program.styles.length > 0;
 
     printer.appendLine('//@ts-nocheck');
+    const hasOutlet = program.components.some(c => c.hasOutlet);
+    if (hasOutlet) {
+      printer.appendLine("import React from 'react';");
+    }
     if (hasStyles) {
       printer.appendLine(`import './${fileName}.css';`);
       printer.crlf();
     }
 
     for (const type of types) {
+      const component = program.components.find(c => `${c.name.text}Props` === type.typeName);
+      if (component) {
+        const typeNotation = { text: 'React.ReactNode' } as Token;
+        const name = { text: 'children' } as Token;
+        const members: MemberNode[] = [...type.members, { name, optional: true, typeNotation} ];
+        printer.printType({ typeName: type.typeName, members });
+        continue;
+      }
       printer.printType(type);
     }
 
@@ -59,7 +73,7 @@ export class ReactPlugin {
   }
 
   private writeComponent(component: N.ComponentNode, printer: Printer): void {
-    const { name, propsTypeName } = component;
+    const {name, propsTypeName} = component;
 
     if (propsTypeName) {
       printer.appendLine(`export function ${name.text}(props: ${propsTypeName}) {`);
@@ -88,7 +102,7 @@ export class ReactPlugin {
     const templateTable = this.currentComponent.templateSymbols;
     for (const pair of templateTable.ifElsePairs.values()) {
       const isInProps = properties.some(p => p.name.text === pair.identifierExpResult);
-      if(pair.areContiguous || isInProps) continue;
+      if (pair.areContiguous || isInProps) continue;
       printer.appendLine(`const ${pair.identifierExpResult} = ${Writer.writeExpression(pair.expression)};`, 2);
     }
     printer.crlf();

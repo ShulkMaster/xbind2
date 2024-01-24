@@ -18,6 +18,7 @@ export type ComponentNode = {
   type: 'component';
   name: Token;
   scope: UsePath;
+  hasOutlet: boolean;
   properties: PropertyNode[];
   propsTypeName: string | undefined;
   template: TemplateNode;

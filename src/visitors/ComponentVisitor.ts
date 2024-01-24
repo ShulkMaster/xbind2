@@ -3,7 +3,7 @@ import * as H from 'parser/Haibt';
 import { ComponentResult, ComponentNode, PropertyNode } from 'types/nodes';
 import { symbolToToken } from 'utils/parse';
 import { TypeVisitor } from './TypeVisitor';
-import { TagNode } from 'types/nodes/template';
+import { TagNode, ChildNode } from 'types/nodes/template';
 import { TemplateVisitor } from './TemplateVisitor';
 import { ExpressionVisitor } from './ExpressionVisitor';
 
@@ -18,18 +18,34 @@ export class ComponentVisitor extends BaseVisitor<ComponentResult> {
     const body = ctx.componentBody();
     this.visit(body);
 
+    const hasOutlet = this.hasOutlet(this.tags);
+
     return {
       type: 'component',
       name: symbolToToken(name),
       properties: this.props,
       propsTypeName: undefined,
       scope: [],
+      hasOutlet,
       template: {
         type: 'template',
         children: this.tags,
       }
     };
   };
+
+  public hasOutlet(tags: ChildNode[]): boolean {
+    for (const tag of tags) {
+      if (tag.type === 'tag' && tag.openTag.text === 'children') {
+        return true;
+      }
+
+      if (tag.type === 'tag') {
+        return this.hasOutlet(tag.children);
+      }
+    }
+    return false;
+  }
 
   visitPropDeclaration = (ctx: H.PropDeclarationContext): void => {
     const prop = ctx.Prop().symbol;
