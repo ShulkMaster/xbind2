@@ -31,6 +31,14 @@ export const undefinedSymbol: ObjectSymbol = {
   origin: 'object',
 };
 
+export const anySymbol: ObjectSymbol = {
+  fqnd: 'any',
+  name: 'any',
+  kind: SymbolKind.Object,
+  members: {},
+  origin: 'object',
+};
+
 export const nativeVoid: ObjectSymbol = {
   fqnd: NativeDataType.Void,
   name: NativeDataType.Void,

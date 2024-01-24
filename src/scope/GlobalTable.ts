@@ -6,7 +6,7 @@ export class GlobalTable {
 
   static init() {
     this.symbols.set(stringSymbols.fqnd, stringSymbols);
-    this.symbols.set(numberSymbols.fqnd, numberSymbols);
+    numberSymbols.forEach(symbol => this.symbols.set(symbol.fqnd, symbol));
     valueSymbols.forEach(symbol => this.symbols.set(symbol.fqnd, symbol));
   }
 
