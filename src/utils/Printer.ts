@@ -12,13 +12,17 @@ export class Printer {
     this.texts.push(text);
   }
 
-  public appendLine(text: string,  pad?: number): void {
+  public appendLine(text: string,  pad = 0, crlf= true): void {
     this.append(text, pad);
-    this.texts.push('\r\n');
+    if(crlf) {
+      this.texts.push('\r\n');
+    }
   }
 
-  public crlf(): void {
-    this.texts.push('\r\n');
+  public crlf(jump = true): void {
+    if(jump) {
+      this.texts.push('\r\n');
+    }
   }
 
   public flush(): string {

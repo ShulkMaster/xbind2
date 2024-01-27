@@ -24,6 +24,7 @@ export class Template {
       printer.appendLine('(');
       printer.appendLine('<>', 4);
       this.writeTemplate(template.children, printer, 6);
+      printer.crlf();
       printer.appendLine('</>', 4);
       printer.appendLine(');', 2);
       return;
@@ -75,10 +76,10 @@ export class Template {
           this.writeTag(child, printer, indent);
           break;
         case 'charData':
-          printer.appendLine(child.contents.join(' '), indent);
+          printer.append(child.contents.join(' '), indent);
           break;
         case 'expression':
-          printer.appendLine(`{${Writer.writeExpression(child.expression)}}`, indent);
+          printer.append(`{${Writer.writeExpression(child.expression)}}`, indent);
           break;
       }
     }
@@ -87,13 +88,19 @@ export class Template {
   private writeConditionalTag(tag: N.TagNode, printer: Printer, indent: number): void {
     const hasChildren = tag.children.length > 0;
 
+    if(tag.openTag.text === 'children') {
+      printer.append('props.children');
+      return;
+    }
+
     if(hasChildren) {
+      const isOnLine = Writer.isSingleLine(tag);
       printer.appendLine('(');
       printer.append(`<${tag.openTag.text}`, indent);
       this.writeAttributes(tag, printer);
-      printer.appendLine('>');
-      this.writeTemplate(tag.children, printer, indent + 2);
-      printer.appendLine(`</${tag.closeTag?.text}>`, indent);
+      printer.appendLine('>', 0, !isOnLine);
+      this.writeTemplate(tag.children, printer, isOnLine ? 0 : indent + 2);
+      printer.appendLine(`</${tag.closeTag?.text}>`, isOnLine ? 0 : indent);
       printer.append(')', indent - 2);
       return;
     }
@@ -140,7 +147,7 @@ export class Template {
 
     if (isRootTag) {
       if(tag.openTag.text === 'children') {
-        printer.appendLine('props.children');
+        printer.append('props.children');
         return;
       }
       printer.appendLine('(');
@@ -151,13 +158,15 @@ export class Template {
       return;
     }
 
+    const isOnLine = Writer.isSingleLine(tag);
     printer.append(`<${tag.openTag.text}`, indent);
     this.writeAttributes(tag, printer);
     const hasChildren = tag.children.length > 0;
     if (hasChildren) {
-      printer.appendLine('>');
-      this.writeTemplate(tag.children, printer, indent + 2);
-      printer.appendLine(`</${tag.closeTag?.text}>`, indent);
+      printer.appendLine('>', 0, !isOnLine);
+      const newIdent = isOnLine ? 0 : indent + 2;
+      this.writeTemplate(tag.children, printer, newIdent);
+      printer.appendLine(`</${tag.closeTag?.text}>`, isOnLine ? 0 : indent);
     } else {
       printer.appendLine(' />');
     }

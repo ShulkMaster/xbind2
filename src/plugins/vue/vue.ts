@@ -96,7 +96,6 @@ export class VuePlugin {
     const { template } = component;
     printer.appendLine('<template>');
     this.writeTemplateNodes(template.children, printer, 2, 0);
-    printer.crlf();
     printer.appendLine('</template>');
   }
 
@@ -104,13 +103,13 @@ export class VuePlugin {
     for (const child of template) {
       switch (child.type) {
           case 'tag': {
-            const sameLine = lastLine === child.openTag.line;
-            const newPad = Writer.areInSameLine(child) ? 0 : indent;
-            printer.crlf(!sameLine);
+            const sameLine = Writer.isSingleLine(child);
+            const newPad = sameLine ? 0 : indent;
             if (child.openTag.text === 'children') {
               printer.append('<slot', newPad);
               this.writeAttributes(child.attributes, printer);
               printer.append('></slot>', 0);
+              printer.crlf(lastLine !== child.openTag.line);
               break;
             }
             if(child.children.length < 1) {
@@ -121,11 +120,11 @@ export class VuePlugin {
               printer.append(`<${child.openTag.text}`, indent);
               this.writeDirectives(child.directives, printer);
               this.writeAttributes(child.attributes, printer);
-              printer.append('>', 0);
-              const newIndent = Writer.areInSameLine(child) ? 0 : indent + 2;
+              printer.appendLine('>', 0, !sameLine);
+              const newIndent = sameLine ? 0 : indent + 2;
               this.writeTemplateNodes(child.children, printer, newIndent, child.openTag.line);
-              printer.crlf(!Writer.areInSameLine(child));
               printer.append(`</${child.openTag.text}>`, newPad);
+              printer.crlf(lastLine !== child.openTag.line);
             }
           }
           break;

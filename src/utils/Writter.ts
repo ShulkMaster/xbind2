@@ -1,9 +1,12 @@
 import * as E from 'types/nodes';
 import { ReturnType } from 'types/nodes/native';
 import { Logger } from './logger';
-import { LiteralObjectElement } from 'types/nodes';
 
 export class Writer {
+
+  public static isSingleLine(a: E.TagNode): boolean {
+    return a.openTag.line === a.closeTag?.line;
+  }
 
   public static writeExpression(expression: E.ExpressionResult, pad = 0): string {
     switch (expression.kind) {
