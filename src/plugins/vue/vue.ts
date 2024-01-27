@@ -107,6 +107,7 @@ export class VuePlugin {
             const newPad = sameLine ? 0 : indent;
             if (child.openTag.text === 'children') {
               printer.append('<slot', newPad);
+              this.writeDirectives(child.directives, printer);
               this.writeAttributes(child.attributes, printer);
               printer.append('></slot>', 0);
               printer.crlf(lastLine !== child.openTag.line);

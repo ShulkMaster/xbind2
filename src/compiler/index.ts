@@ -50,11 +50,14 @@ export function compile(source: string, option: CompileOptions): void {
     return;
   }
   visitedUnits.forEach(unit => Logger.debug(unit.program));
-  const plugin = option.plugin === 'react'
-    ? new ReactPlugin(option.output)
-    : new VuePlugin(option.output);
-  plugin.setResolver(res);
-  visitedUnits.forEach(unit => plugin.writeProgram(unit.program));
+  const rPlugin = new ReactPlugin(option.output);
+  const vPlugin = new VuePlugin(option.output);
+  rPlugin.setResolver(res);
+  vPlugin.setResolver(res);
+  visitedUnits.forEach(unit => {
+    rPlugin.writeProgram(unit.program);
+    vPlugin.writeProgram(unit.program);
+  });
   Logger.info('Compilation complete');
 }
 

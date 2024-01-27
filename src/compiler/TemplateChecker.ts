@@ -26,8 +26,36 @@ export class TemplateChecker {
       });
     }
 
-    tag.attributes.forEach(prop => this.checkAttribute(prop));
     this.checkDirectives(tag.directives);
+
+    if (tag.openTag.text === 'children') {
+      if (tag.children.length > 0) {
+        res.addError({
+          message: 'children tag cannot have any children',
+          line: tag.openTag.line,
+          column: tag.openTag.column,
+        });
+      }
+
+      if(tag.attributes.length > 0) {
+        res.addError({
+          message: 'children tag cannot have any attributes',
+          line: tag.openTag.line,
+          column: tag.openTag.column,
+        });
+
+        tag.attributes.forEach(attr => {
+          res.addError({
+            message: `attribute ${attr.name.text} does not exist on children tag`,
+            line: attr.name.line,
+            column: attr.name.column,
+          });
+        });
+      }
+      return;
+    }
+    tag.attributes.forEach(prop => this.checkAttribute(prop));
+
     tag.children.forEach(child => {
       switch (child.type) {
         case 'charData':
