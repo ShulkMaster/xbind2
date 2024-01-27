@@ -95,32 +95,45 @@ export class VuePlugin {
   private writeTemplate(component: N.ComponentNode, printer: Printer): void {
     const { template } = component;
     printer.appendLine('<template>');
-    this.writeTemplateNodes(template.children, printer, 2);
+    this.writeTemplateNodes(template.children, printer, 2, 0);
+    printer.crlf();
     printer.appendLine('</template>');
   }
 
-  private writeTemplateNodes(template: N.ChildNode[], printer: Printer, indent: number): void {
+  private writeTemplateNodes(template: N.ChildNode[], printer: Printer, indent: number, lastLine: number): void {
     for (const child of template) {
       switch (child.type) {
-        case 'tag':
-          if(child.children.length < 1) {
-            printer.append(`<${child.openTag.text}`, indent);
-            printer.appendLine('/>', 0);
-            this.writeAttributes(child.attributes, printer);
-          } else {
-            printer.append(`<${child.openTag.text}`, indent);
-            this.writeDirectives(child.directives, printer);
-            this.writeAttributes(child.attributes, printer);
-            printer.appendLine('>', 0);
-            this.writeTemplateNodes(child.children, printer, indent + 2);
-            printer.appendLine(`</${child.openTag.text}>`, indent);
+          case 'tag': {
+            const sameLine = lastLine === child.openTag.line;
+            const newPad = Writer.areInSameLine(child) ? 0 : indent;
+            printer.crlf(!sameLine);
+            if (child.openTag.text === 'children') {
+              printer.append('<slot', newPad);
+              this.writeAttributes(child.attributes, printer);
+              printer.append('></slot>', 0);
+              break;
+            }
+            if(child.children.length < 1) {
+              printer.append(`<${child.openTag.text}`, indent);
+              this.writeAttributes(child.attributes, printer);
+              printer.appendLine('/>', 0);
+            } else {
+              printer.append(`<${child.openTag.text}`, indent);
+              this.writeDirectives(child.directives, printer);
+              this.writeAttributes(child.attributes, printer);
+              printer.append('>', 0);
+              const newIndent = Writer.areInSameLine(child) ? 0 : indent + 2;
+              this.writeTemplateNodes(child.children, printer, newIndent, child.openTag.line);
+              printer.crlf(!Writer.areInSameLine(child));
+              printer.append(`</${child.openTag.text}>`, newPad);
+            }
           }
           break;
         case 'charData':
-          printer.appendLine(child.contents.join(' '), indent);
+          printer.append(child.contents.join(' '), indent);
           break;
         case 'expression':
-          printer.appendLine(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
+          printer.append(`{{ ${Writer.writeExpression(child.expression)} }}`, indent);
           break;
       }
     }
