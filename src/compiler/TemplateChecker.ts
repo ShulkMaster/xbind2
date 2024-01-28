@@ -6,7 +6,7 @@ import { ReturnType } from 'types/nodes/native';
 import { ExpressionCheck } from './ExpressionCheck';
 import { Member, ObjectSymbol, SymbolKind, TagSymbol } from 'types/scope';
 import { ExpressionCheckResult } from '../types/crossbind';
-import { isAssignableTo } from './helper';
+import { getTypeName, isAssignableTo } from './helper';
 import { nativeBool } from '../bcl/lang/lib';
 
 export class TemplateChecker {
@@ -127,7 +127,7 @@ export class TemplateChecker {
         return;
       }
 
-      this.checkPropObject(propsDef as ObjectSymbol, props);
+      this.checkPropObject(tagDef, propsDef as ObjectSymbol, props);
     }
 
     if (tagDef.kind === SymbolKind.Tag) {
@@ -140,7 +140,7 @@ export class TemplateChecker {
     // todo check if the tag has the attribute
   }
 
-  private checkPropObject(symbol: ObjectSymbol, props: N.AttributeNode[]): void {
+  private checkPropObject(componentSymbol: ObjectSymbol, symbol: ObjectSymbol, props: N.AttributeNode[]): void {
     const required = new Map<string, Member>();
     for (const member of Object.values(symbol.members)) {
       if (!member.optional) {
@@ -153,7 +153,7 @@ export class TemplateChecker {
       const propSymbol = symbol.members[name.text];
       if (!propSymbol) {
         res.addError({
-          message: `attribute ${name.text} does not exist on ${symbol.name}`,
+          message: `attribute ${name.text} does not exist on ${componentSymbol.name}`,
           line: name.line,
           column: name.column,
         });
@@ -163,13 +163,42 @@ export class TemplateChecker {
       if (!propSymbol.optional) {
         required.delete(propSymbol.name);
       }
+
+      if(propSymbol.typeRef.symbolName === nativeBool.name && !value) {
+        continue;
+      }
+      if(!value) {
+        res.addError({
+          message: `attribute ${name.text} from ${componentSymbol.name} has no value assigned`,
+          line: name.line,
+          column: name.column,
+        });
+        continue;
+      }
+
+      const expResult = this.expChecker.checkExpression(value);
+      if (!expResult.valid) {
+        continue;
+      }
+
+      const result = expResult.result;
+      const expectedType = res.resolve(propSymbol.typeRef);
+      const assignation = isAssignableTo(expectedType, result, false);
+      if (!assignation) {
+        const typeName = getTypeName(result);
+        res.addError({
+          message: `type ${typeName} is not assignable to property ${name.text} type ${expectedType?.name}`,
+          line: name.line,
+          column: name.column,
+        });
+      }
     }
 
     for (const member of required.values()) {
       res.addError({
-        message: `${symbol.name} has required attribute ${member.name} missing`,
-        line: symbol?.declaration?.line ?? 0,
-        column: symbol?.declaration?.column ?? 0,
+        message: `${componentSymbol.name} has required attribute ${member.name} missing`,
+        line: componentSymbol?.declaration?.line ?? 0,
+        column: componentSymbol?.declaration?.column ?? 0,
       });
     }
   }

@@ -53,6 +53,11 @@ export class AttributeVisitor extends BaseVisitor<N.AttributeVisit> {
     const identifier = ctx.Identifier();
     const attributeBindFollow = ctx.attributeBindFollow();
     const expression = this.visitAttributeBindFollow(attributeBindFollow);
+
+    if (expression.kind === ExpressionKind.constantExpression && expression.token === null) {
+      expression.token = symbolToToken(identifier.symbol);
+    }
+
     return {
       identifier: symbolToToken(identifier.symbol),
       expression,
@@ -60,7 +65,17 @@ export class AttributeVisitor extends BaseVisitor<N.AttributeVisit> {
   };
 
   visitAttributeBindFollow = (ctx: H.AttributeBindFollowContext): N.ExpressionResult => {
-    return this.visitAttribValue(ctx.attributeValue());
+    const valueExp = ctx.attributeValue();
+
+    if(!valueExp) {
+      return {
+        kind: ExpressionKind.constantExpression,
+        primitiveType: ReturnType.Boolean,
+        token: valueExp,
+      };
+    }
+
+    return this.visitAttribValue(valueExp);
   };
 
   visitDirective = (ctx: H.DirectiveContext): N.DirectiveNode => {

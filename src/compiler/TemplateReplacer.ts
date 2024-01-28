@@ -37,16 +37,6 @@ export class TemplateReplacer {
   }
 
   private replaceStylesInExp(table: ModuleTable, exp: ExpressionResult): ExpressionResult {
-    if (exp.kind === ExpressionKind.constantExpression) { return exp; }
-
-    if (exp.kind === ExpressionKind.PrimaryExpression) {
-      const { groupExpression } = exp;
-      if (groupExpression) {
-        groupExpression.expression = this.replaceStylesInExp(table, groupExpression.expression);
-      }
-      return exp;
-    }
-
     if(exp.kind === ExpressionKind.PostfixExpression) {
       const { primary, follow, member} = exp;
       if(primary?.kind === ExpressionKind.PrimaryExpression && !follow) {
@@ -71,6 +61,39 @@ export class TemplateReplacer {
     }
 
     switch (exp.kind) {
+      case ExpressionKind.constantExpression: return exp;
+      case ExpressionKind.ObjectLiteralExpression: {
+        exp.elements.forEach(prop => {
+          prop.value = this.replaceStylesInExp(table, prop.value);
+        });
+        return exp;
+      }
+      case ExpressionKind.PrimaryExpression: {
+        const { groupExpression } = exp;
+        if (groupExpression) {
+          groupExpression.expression = this.replaceStylesInExp(table, groupExpression.expression);
+        }
+        return exp;
+      }
+      case ExpressionKind.UnaryExpression: {
+        exp.right = this.replaceStylesInExp(table, exp.right);
+        return exp;
+      }
+      case ExpressionKind.CastExpression: {
+        exp.left = this.replaceStylesInExp(table, exp.left);
+        // todo missing the cast typing info
+        return exp;
+      }
+      case ExpressionKind.MultiplicativeExpression: {
+        exp.left = this.replaceStylesInExp(table, exp.left);
+        exp.right = this.replaceStylesInExp(table, exp.right);
+        return exp;
+      }
+      case ExpressionKind.AdditiveExpression: {
+        exp.left = this.replaceStylesInExp(table, exp.left);
+        exp.right = this.replaceStylesInExp(table, exp.right);
+        return exp;
+      }
       case ExpressionKind.AssignmentExpression:
       case ExpressionKind.ConditionalExpression:
       case ExpressionKind.TernaryExpression:
@@ -78,11 +101,6 @@ export class TemplateReplacer {
       case ExpressionKind.LogicalAndExpression:
       case ExpressionKind.EqualityExpression:
       case ExpressionKind.RelationalExpression:
-      case ExpressionKind.AdditiveExpression:
-      case ExpressionKind.MultiplicativeExpression:
-      case ExpressionKind.CastExpression:
-      case ExpressionKind.UnaryExpression:
-        return this.replaceStylesInExp(table, exp);
       default:
         throw new Error('unimplemented');
     }
