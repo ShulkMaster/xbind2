@@ -1,5 +1,3 @@
-import { Token } from 'types/token';
-
 export const enum ReturnType {
   Void = 'void',
   Number = 'number',
@@ -23,20 +21,6 @@ export const enum EvenSource {
   DomEvent = 'DomEvent',
 }
 
-export type EventArgs = {
-  name: string;
-  target: EventTarget;
-  properties: {
-    [key: string]: ReturnType;
-  };
-  methods: {
-    [key: string]: {
-      returnType: ReturnType;
-      args: EventArgs[];
-    };
-  };
-};
-
 export enum NativeTag {
   div = 'div',
   span = 'span',
@@ -55,26 +39,3 @@ export enum NativeTag {
   ul = 'ul',
   ol = 'ol',
 }
-
-export type TagProperty = {
-  name: string;
-  returnType: ReturnType | Token;
-}
-
-export type TagEvent = {
-  name: string;
-  type: EvenSource;
-  returnType: ReturnType | Token;
-  args: EventArgs[];
-};
-
-export type BaseTag = {
-  name: NativeTag;
-  children: boolean;
-  events: {
-    [key: string]: TagEvent;
-  };
-  properties: {
-    [key: string]: TagProperty;
-  };
-};

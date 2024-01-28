@@ -1,9 +1,13 @@
 import * as N from 'types/nodes';
-import { DirectiveType, ExpressionKind } from 'types/nodes';
+import { DirectiveType, ExpressionKind, TagNode } from 'types/nodes';
 import * as E from 'types/nodes/expression';
 import { res } from 'scope';
 import { ReturnType } from 'types/nodes/native';
 import { ExpressionCheck } from './ExpressionCheck';
+import { Member, ObjectSymbol, SymbolKind, TagSymbol } from 'types/scope';
+import { ExpressionCheckResult } from '../types/crossbind';
+import { isAssignableTo } from './helper';
+import { nativeBool } from '../bcl/lang/lib';
 
 export class TemplateChecker {
   private readonly expChecker = new ExpressionCheck();
@@ -54,7 +58,8 @@ export class TemplateChecker {
       }
       return;
     }
-    tag.attributes.forEach(prop => this.checkAttribute(prop));
+
+    this.checkTagProps(tag, tag.attributes);
 
     tag.children.forEach(child => {
       switch (child.type) {
@@ -70,12 +75,102 @@ export class TemplateChecker {
     });
   }
 
-  private checkAttribute(attribute: N.AttributeNode): void {
-    const {name, value} = attribute;
-    // todo: check attribute name exits and has correct type
-    if (value) {
-      const expChecker = this.expChecker.checkExpression(value);
-      //todo: check attribute type is correct and exits;
+  private checkTagProps(tag: TagNode, props: N.AttributeNode[]): void {
+    const tagName = tag.openTag;
+    const tagDef = res.resolve({ symbolName: tagName.text });
+
+    if (!tagDef) {
+      res.addError({
+        message: `Unresolved identifier ${tag.openTag.text}`,
+        line: tagName.line,
+        column: tagName.column,
+      });
+      return;
+    }
+
+    if (tagDef.kind !== SymbolKind.Tag && tagDef.kind !== SymbolKind.Object) {
+      res.addError({
+        message: `${tagName.text} its a ${tagDef.kind} but its used as a component or tag`,
+        line: tagName.line,
+        column: tagName.column,
+      });
+      return;
+    }
+
+    if (tagDef.kind === SymbolKind.Object && tagDef.origin !== 'component') {
+      res.addError({
+        message: `Object ${tagName.text} its not a component and cannot be used in the template`,
+        line: tagName.line,
+        column: tagName.column,
+      });
+      return;
+    }
+
+    if (tagDef.kind === SymbolKind.Object) {
+      const propsSymbol = tagDef.propertySymbol;
+      if (!propsSymbol) {
+        res.addError({
+          message: `Unresolved symbol ${tagName.text} has no properties`,
+          line: tagName.line,
+          column: tagName.column,
+        });
+        return;
+      }
+
+      const propsDef = res.resolve(propsSymbol);
+      if (!propsDef) {
+        res.addError({
+          message: `Unresolved properties symbol ${tagName.text}`,
+          line: tagName.line,
+          column: tagName.column,
+        });
+        return;
+      }
+
+      this.checkPropObject(propsDef as ObjectSymbol, props);
+    }
+
+    if (tagDef.kind === SymbolKind.Tag) {
+      this.checkAttribute(tagDef, props);
+    }
+  }
+
+  private checkAttribute(symbol: TagSymbol, props: N.AttributeNode[]): void {
+    console.log(`Symbol was ${symbol.name} ${symbol.kind}`);
+    // todo check if the tag has the attribute
+  }
+
+  private checkPropObject(symbol: ObjectSymbol, props: N.AttributeNode[]): void {
+    const required = new Map<string, Member>();
+    for (const member of Object.values(symbol.members)) {
+      if (!member.optional) {
+        required.set(member.name, member);
+      }
+    }
+
+    for (const prop of props) {
+      const { name, value } = prop;
+      const propSymbol = symbol.members[name.text];
+      if (!propSymbol) {
+        res.addError({
+          message: `attribute ${name.text} does not exist on ${symbol.name}`,
+          line: name.line,
+          column: name.column,
+        });
+        continue;
+      }
+
+      if (!propSymbol.optional) {
+        required.delete(propSymbol.name);
+      }
+    }
+
+    for (const member of required.values()) {
+      res.addError({
+        message: `${symbol.name} has required attribute ${member.name} missing`,
+        line: symbol?.declaration?.line ?? 0,
+        column: symbol?.declaration?.column ?? 0,
+      });
     }
   }
 

@@ -1,6 +1,7 @@
 import { UsePath } from './nodes';
 import { Token } from './token';
 import { ArgState } from 'bcl/lang/lib';
+import { EvenSource, NativeTag, EventTarget } from './nodes/native';
 
 export const enum SymbolKind {
   Style = 'style',
@@ -8,6 +9,7 @@ export const enum SymbolKind {
   Type = 'type',
   Variable = 'variable',
   Object = 'object',
+  Tag = 'tag',
 }
 
 export const enum VarModifier {
@@ -80,6 +82,35 @@ export type ObjectSymbol = {
   members: { [member: string]: Member };
 } & BaseSymbol;
 
+
+export type NativeProperty = {
+  name: string;
+  returnType: SymbolRef;
+}
+
+export type TagEvent = {
+  name: string;
+  source: EvenSource;
+  target: EventTarget;
+  returnType: SymbolRef;
+  args: ArgList[];
+};
+
+export type TagSymbol = {
+  kind: SymbolKind.Tag;
+  fqnd: string;
+  name: NativeTag;
+  children: boolean;
+  declaration?: Token;
+  events: {
+    [key: string]: TagEvent;
+  };
+  properties: {
+    [key: string]: NativeProperty;
+  };
+};
+
+
 export const enum LiteralType {
   Object = 'objectLiteral',
   Array = 'arrayLiteral',
@@ -102,6 +133,7 @@ export type HSymbol =
   FunctionSymbol |
   TypeSymbol |
   VariableSymbol |
-  ObjectSymbol;
+  ObjectSymbol |
+  TagSymbol;
 
 export type Resolution = HSymbol | undefined;
