@@ -256,6 +256,9 @@ function literalObjectAssignable(expected: ObjectSymbol | TypeSymbol, actual: Li
     valid = isAssignableTo(expectedType, actualType) && valid;
   }
 
+  if (nativeNames.includes(expected.name as NativeDataType)) {
+    return false;
+  }
   // members in the expected type that might not exist in the literal object
   for (const [name, expectedMember] of Object.entries(expected.members)) {
     const actualMember = actual.members[name];

@@ -119,8 +119,8 @@ function isVariadicAssignable(expected: Resolution, args: ExpressionResult[]): v
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    const {valid, result, errors} = checker.checkExpression(arg);
-
+    // todo allow array of variadic to be allowed
+    const {valid, result} = checker.checkExpression(arg);
     if (!valid) {
       continue;
     }

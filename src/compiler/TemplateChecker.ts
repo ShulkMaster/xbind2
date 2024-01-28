@@ -109,11 +109,13 @@ export class TemplateChecker {
     if (tagDef.kind === SymbolKind.Object) {
       const propsSymbol = tagDef.propertySymbol;
       if (!propsSymbol) {
-        res.addError({
-          message: `Unresolved symbol ${tagName.text} has no properties`,
-          line: tagName.line,
-          column: tagName.column,
-        });
+        if(props.length > 0) {
+          res.addError({
+            message: `Object ${tagName.text} has no properties and cannot have any attributes`,
+            line: tagName.line,
+            column: tagName.column,
+          });
+        }
         return;
       }
 
