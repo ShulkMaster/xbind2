@@ -12,6 +12,7 @@ import {
 } from 'types/scope';
 import { Token } from 'types/token';
 import { res } from 'scope';
+import { Logger } from 'utils';
 
 export type Assignor = Resolution | LiteralObjectSymbol;
 
@@ -68,7 +69,8 @@ export function getTypeName(type: HSymbol | LiteralObjectSymbol, pad = 0): strin
 
 export function isAssignableTo(expected: Resolution, actual: Assignor, report = true): boolean {
   if (!expected || !actual) {
-    throw new Error(`Missing symbols actual[${actual}] expected [${expected?.name}]`);
+    Logger.warn(`Missing symbols actual[${actual}] expected [${expected?.name}]`);
+    return false;
   }
 
   if(isLiteralType(actual)) {

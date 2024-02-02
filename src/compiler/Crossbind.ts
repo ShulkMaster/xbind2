@@ -20,29 +20,33 @@ export class Crossbind {
   }
 
   private checkTypes(types: N.TypeDeclarationNode[]): void {
-    const propsChecked = new Set<string>();
     for (const type of types) {
-      const { members, typeName } = type;
-      const tName = typeof typeName === 'string' ? typeName : typeName.text;
-      for (const member of members) {
-        const { typeNotation, name } = member;
-        const result = res.resolve({ symbolName: typeNotation.text });
-        if (!result) {
-          res.addError({
-            message: `${tName}.${name.text} has an unresolved type identifier ${typeNotation.text}`,
-            column: typeNotation.column,
-            line: typeNotation.line,
-          });
-        }
-        if(propsChecked.has(name.text)) {
-          res.addError({
-            message: `${tName}.${name.text} has already been declared`,
-            column: name.column,
-            line: name.line,
-          });
-        } else {
-          propsChecked.add(name.text);
-        }
+      this.checkType(type);
+    }
+  }
+
+  private checkType(type: N.TypeDeclarationNode): void {
+    const propsChecked = new Set<string>();
+    const { members, typeName } = type;
+    const tName = typeof typeName === 'string' ? typeName : typeName.text;
+    for (const member of members) {
+      const { typeNotation, name } = member;
+      const result = res.resolve({ symbolName: typeNotation.text });
+      if (!result) {
+        res.addError({
+          message: `${tName}.${name.text} has an unresolved type identifier ${typeNotation.text}`,
+          column: typeNotation.column,
+          line: typeNotation.line,
+        });
+      }
+      if(propsChecked.has(name.text)) {
+        res.addError({
+          message: `${tName}.${name.text} has already been declared`,
+          column: name.column,
+          line: name.line,
+        });
+      } else {
+        propsChecked.add(name.text);
       }
     }
   }

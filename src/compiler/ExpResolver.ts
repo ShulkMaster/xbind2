@@ -5,7 +5,8 @@ import { HSymbol, Resolution, SymbolKind } from 'types/scope';
 import { res } from 'scope';
 import { ExpressionCheck } from './ExpressionCheck';
 import { getTypeName, isAssignableTo } from './helper';
-import { ArgState } from 'bcl/lang/lib';
+import { ArgState, nativeString } from 'bcl/lang/lib';
+import { Logger } from 'utils';
 
 function checkCompMember(member: Token, symbol: S.ObjectSymbol): Resolution {
   const symbolMember = symbol.members[member.text];
@@ -33,6 +34,67 @@ function checkCompMember(member: Token, symbol: S.ObjectSymbol): Resolution {
   return res.resolve(typeRef);
 }
 
+function checkVariableMember(member: Token, varType: Resolution): Resolution {
+  if (!varType) return undefined;
+
+  switch (varType.kind) {
+    case SymbolKind.Style:
+      Logger.warn('Reached a CSS style member');
+      return nativeString;
+    case SymbolKind.Type: {
+      const memberType = varType.members[member.text];
+      if (!memberType) {
+        res.addError({
+          message: `${varType.name} does not have a member called ${member.text}`,
+          column: member.column,
+          line: member.line,
+        });
+        return undefined;
+      }
+      const memberTypeRef = res.resolve(memberType.typeRef);
+      if (!memberTypeRef) {
+        res.addError({
+          message: `Unable to resolve member ${varType.fqnd}.${member.text} type`,
+          column: member.column,
+          line: member.line,
+        });
+        return undefined;
+      }
+
+      if(memberTypeRef.kind !== SymbolKind.Type) return memberTypeRef;
+
+      return {
+        kind: SymbolKind.Object,
+        origin: 'object',
+        name: memberTypeRef.name,
+        fqnd: memberTypeRef.fqnd,
+        members: memberTypeRef.members,
+        declaration: memberTypeRef.declaration,
+      };
+    }
+    case SymbolKind.Object:
+      return checkCompMember(member, varType);
+    case SymbolKind.Function:
+      res.addError({
+        message: `${varType.name} its a function and has no members`,
+        column: member.column,
+        line: member.line,
+      });
+      return undefined;
+    case SymbolKind.Tag:
+      res.addError({
+        message: `${varType.name} its a tag and has no members`,
+        column: member.column,
+        line: member.line,
+      });
+      return undefined;
+    case SymbolKind.Variable:
+      throw new Error('Variable cannot be a member of another variable');
+    default:
+      throw new Error('Unknown symbol kind for symbol');
+  }
+}
+
 export function expCheckMember(member: Token, symbol: HSymbol): Resolution {
   switch (symbol.kind) {
     case SymbolKind.Object:
@@ -47,7 +109,7 @@ export function expCheckMember(member: Token, symbol: HSymbol): Resolution {
         });
         return undefined;
       }
-      return expCheckMember(member, refSymbol);
+      return checkVariableMember(member, refSymbol);
     }
     case SymbolKind.Style:
       res.addError({
@@ -71,7 +133,7 @@ export function expCheckMember(member: Token, symbol: HSymbol): Resolution {
       });
       return undefined;
     default:
-      throw new Error(`Unknown symbol kind for ${symbol}`);
+      throw new Error(`Unknown symbol kind for ${symbol.fqnd}`);
   }
 }
 
