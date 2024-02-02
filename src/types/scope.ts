@@ -86,6 +86,7 @@ export type ObjectSymbol = {
 export type NativeProperty = {
   name: string;
   returnType: SymbolRef;
+  required?: boolean;
 }
 
 export type TagEvent = {

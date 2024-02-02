@@ -4,8 +4,7 @@ import * as E from 'types/nodes/expression';
 import { res } from 'scope';
 import { ReturnType } from 'types/nodes/native';
 import { ExpressionCheck } from './ExpressionCheck';
-import { Member, ObjectSymbol, SymbolKind, TagSymbol } from 'types/scope';
-import { ExpressionCheckResult } from '../types/crossbind';
+import { Member, NativeProperty, ObjectSymbol, SymbolKind, TagSymbol } from 'types/scope';
 import { getTypeName, isAssignableTo } from './helper';
 import { nativeBool } from '../bcl/lang/lib';
 
@@ -138,8 +137,67 @@ export class TemplateChecker {
   }
 
   private checkAttribute(symbol: TagSymbol, props: N.AttributeNode[]): void {
-    console.log(`Symbol was ${symbol.name} ${symbol.kind}`);
-    // todo check if the tag has the attribute
+    const required = new Map<string, NativeProperty>();
+    for (const member of Object.values(symbol.properties)) {
+      if (member.required) {
+        required.set(member.name, member);
+      }
+    }
+
+    for (const prop of props) {
+      const { name, value } = prop;
+      const propSymbol = symbol.properties[name.text];
+      if (!propSymbol) {
+        res.addError({
+          message: `attribute ${name.text} does not exist on ${symbol.name}`,
+          line: name.line,
+          column: name.column,
+        });
+        continue;
+      }
+
+      if (propSymbol.required) {
+        required.delete(propSymbol.name);
+      }
+
+      if (propSymbol.returnType.symbolName === nativeBool.name && !value) {
+        continue;
+      }
+
+      if (!value) {
+        res.addError({
+          message: `attribute ${name.text} from ${symbol.name} has no value assigned`,
+          line: name.line,
+          column: name.column,
+        });
+        continue;
+      }
+
+      const expResult = this.expChecker.checkExpression(value);
+      if (!expResult.valid) {
+        continue;
+      }
+
+      const result = expResult.result;
+      const expectedType = res.resolve(propSymbol.returnType);
+      const assignation = isAssignableTo(expectedType, result, false);
+      if (!assignation) {
+        const typeName = getTypeName(result);
+        res.addError({
+          message: `type ${typeName} is not assignable to property ${name.text} type ${expectedType?.name}`,
+          line: name.line,
+          column: name.column,
+        });
+      }
+    }
+
+    for (const member of required.values()) {
+      res.addError({
+        message: `${symbol.name} has required attribute ${member.name} missing`,
+        line: symbol?.declaration?.line ?? 0,
+        column: symbol?.declaration?.column ?? 0,
+      });
+    }
   }
 
   private checkPropObject(componentSymbol: ObjectSymbol, symbol: ObjectSymbol, props: N.AttributeNode[]): void {
