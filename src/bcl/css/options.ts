@@ -84,3 +84,16 @@ export const decorationPatternOptions: CssIdentifierOption[] = [
   { name: 'ridge' },
   unset,
 ];
+
+export const colorOptions: CssIdentifierOption[] = [
+  { name: 'transparent' },
+  { name: 'currentColor', alias: 'currentcolor' },
+  { name: 'inherit' },
+  unset,
+];
+
+export const borderStyleOptions: CssIdentifierOption[] = [
+  { name: 'thin' },
+  { name: 'medium' },
+  { name: 'think' },
+];

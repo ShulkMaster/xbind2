@@ -8,12 +8,24 @@ import { Crossbind } from './Crossbind';
 import { res } from 'scope/Resolver';
 import { ReactPlugin, VuePlugin } from 'plugins';
 import { TemplateReplacer } from './TemplateReplacer';
+import { LogLevel, MemoryUsage } from 'types/logging';
 
 export * from './Crossbind';
 
 export function compile(source: string, option: CompileOptions): void {
+  console.time();
   const level = asLogLevel(option.log);
   Logger.setLevel(level);
+  let timer: number = 0;
+  const heapData: MemoryUsage[] = [];
+
+  if (level === LogLevel.DEBUG) {
+    heapData.push(process.memoryUsage());
+    timer = setInterval(() => {
+      heapData.push(process.memoryUsage());
+    }, 100) as unknown as number;
+  }
+
   const sourceFiles = findFiles(source);
   Logger.info(`Found ${sourceFiles.length} files to compile`);
   Logger.info(`Files:\n${sourceFiles.join('\n')}`);
@@ -58,7 +70,13 @@ export function compile(source: string, option: CompileOptions): void {
     rPlugin.writeProgram(unit.program);
     vPlugin.writeProgram(unit.program);
   });
-  Logger.info('Compilation complete');
+  clearInterval(timer);
+  if(level === LogLevel.DEBUG) {
+    heapData.push(process.memoryUsage());
+    Logger.debug(heapData);
+  }
+  Logger.info('Compilation complete:');
+  console.timeEnd();
 }
 
 export function parseHaibt(sourceFile: string): ParseUnit {

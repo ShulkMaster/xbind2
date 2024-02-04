@@ -21,3 +21,11 @@ export type SimpleError = {
   line: number;
   column: number;
 };
+
+export type MemoryUsage = {
+  rss: number;
+  heapTotal: number;
+  heapUsed: number;
+  external: number;
+  arrayBuffers: number;
+};
