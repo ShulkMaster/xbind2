@@ -6,4 +6,5 @@ grammar
 outdir
 gen
 benchmark/test
+benchmark/results
 benchmark/*.js*
