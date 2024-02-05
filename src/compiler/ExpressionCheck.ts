@@ -28,6 +28,8 @@ export class ExpressionCheck {
         return this.checkCastExp(expression);
       case N.ExpressionKind.MultiplicativeExpression:
         return this.checkMulti(expression);
+      case N.ExpressionKind.AdditiveExpression:
+        return this.checkAdditive(expression);
       case N.ExpressionKind.AssignmentExpression:
       case N.ExpressionKind.ConditionalExpression:
       case N.ExpressionKind.TernaryExpression:
@@ -35,7 +37,6 @@ export class ExpressionCheck {
       case N.ExpressionKind.LogicalAndExpression:
       case N.ExpressionKind.EqualityExpression:
       case N.ExpressionKind.RelationalExpression:
-      case N.ExpressionKind.AdditiveExpression:
         throw new Error(`Not implemented ${expression.kind}`);
       default:
         throw new Error('Invalid expression');
@@ -223,5 +224,46 @@ export class ExpressionCheck {
       }
 
       return { valid: true, result: nativeNumber };
+  }
+
+  private checkAdditive(exp: N.AdditiveExpressionNode): ExpressionCheckResult {
+    const { left, operator, right } = exp;
+    const leftCheck = this.checkExpression(left).result;
+    const rightCheck = this.checkExpression(right).result;
+
+    if (leftCheck.kind !== SymbolKind.Object || rightCheck.kind !== SymbolKind.Object) {
+      res.addError({
+        message: 'Invalid operation: left operand is not a number or right operand is not a number',
+        column: operator.column,
+        line: operator.line,
+      });
+      return { valid: false, result: undefinedSymbol };
+    }
+
+    const lisNumber = leftCheck.fqnd === nativeNumber.fqnd;
+    const risNumber = rightCheck.fqnd === nativeNumber.fqnd;
+
+    if (lisNumber && risNumber) {
+      return { valid: true, result: nativeNumber };
+    }
+
+    const lisString = leftCheck.fqnd === nativeString.fqnd;
+    const risString = rightCheck.fqnd === nativeString.fqnd;
+
+    if (risString && risString) {
+      return { valid: true, result: nativeString };
+    }
+
+    if ((lisNumber || lisString) && (risNumber || risString)) {
+      return { valid: true, result: nativeString };
+    }
+
+    res.addError({
+      message: `Invalid operation: left operand is ${leftCheck.fqnd} and right operand is ${rightCheck.fqnd} `,
+      column: operator.column,
+      line: operator.line,
+    });
+
+    return { valid: false, result: undefinedSymbol };
   }
 }
