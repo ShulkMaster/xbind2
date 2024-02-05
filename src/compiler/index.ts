@@ -102,13 +102,15 @@ export function compile(source: string, option: CompileOptions): void {
     plugins.forEach(plugin => plugin.writeProgram(unit.program!));
   });
   logMemoryUsage(level);
-  Logger.info('Compilation complete:');
+  Logger.info('Compilation complete');
   const endTime = process.hrtime.bigint();
-  Logger.performance({
-    start: startTime.toString(),
-    end: endTime.toString(),
-    memory: heapData,
-  });
+  if(level === LogLevel.PERFORMANCE) {
+    Logger.performance({
+      start: startTime.toString(),
+      end: endTime.toString(),
+      memory: heapData,
+    });
+  }
 }
 
 export function parseHaibt(sourceFile: string): ParseUnit {

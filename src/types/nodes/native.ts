@@ -3,6 +3,7 @@ export const enum ReturnType {
   Number = 'number',
   String = 'string',
   Boolean = 'boolean',
+  True = 'true',
   Color = 'color',
   Undefined = 'undefined',
 }

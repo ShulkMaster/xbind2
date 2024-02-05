@@ -160,7 +160,8 @@ export class TemplateChecker {
         required.delete(propSymbol.name);
       }
 
-      if (propSymbol.returnType.symbolName === nativeBool.name && !value) {
+      if (value?.kind === ExpressionKind.constantExpression && value.primitiveType === ReturnType.True) {
+        console.log('true');
         continue;
       }
 
@@ -276,6 +277,8 @@ export class TemplateChecker {
           ? 'empty string is always false'
           : `${text} string value is always true`;
       }
+      case ReturnType.True:
+        return 'true is always true';
       case ReturnType.Boolean:
         return exp.token.text === 'false' ?
           'false is always false' : 'true is always true';

@@ -70,7 +70,7 @@ export class AttributeVisitor extends BaseVisitor<N.AttributeVisit> {
     if(!valueExp) {
       return {
         kind: ExpressionKind.constantExpression,
-        primitiveType: ReturnType.Boolean,
+        primitiveType: ReturnType.True,
         token: valueExp,
       };
     }

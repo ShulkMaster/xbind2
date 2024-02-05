@@ -69,7 +69,9 @@ export class VuePlugin {
     const { propsTypeName } = component;
 
     printer.appendLine('<script setup lang="ts">');
-    printer.appendLine(`import { ${imports.join(', ')} } from './types';`, 2);
+    if (imports.length > 0) {
+      printer.appendLine(`import { ${imports.join(', ')} } from './types';`, 2);
+    }
     if (propsTypeName) {
       const definition = `defineProps<${propsTypeName}>()`;
       const hasDefaultProps = component.properties.some(p => p.initializer);
@@ -143,7 +145,7 @@ export class VuePlugin {
     for (const attribute of attributes) {
       const exp = attribute.value;
 
-      if (!exp) {
+      if (!exp || (exp.kind === ExpressionKind.constantExpression && exp.primitiveType === ReturnType.True)) {
         printer.append(` ${attribute.name.text}`);
         continue;
       }

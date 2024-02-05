@@ -180,7 +180,7 @@ export class Template {
     for (const attr of tag.attributes) {
       const { name, value } = attr;
       const attName = name.text === 'class' ? 'className' : name.text;
-      if (!value) {
+      if (!value || (value.kind === ExpressionKind.constantExpression && value.primitiveType === ReturnType.True)) {
         printer.append(` ${attName}`);
         continue;
       }
