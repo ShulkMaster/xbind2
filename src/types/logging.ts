@@ -2,7 +2,8 @@ export const enum LogLevel {
   DEBUG,
   INFO ,
   WARN,
-  ERROR
+  ERROR,
+  PERFORMANCE,
 }
 
 export type LogSink = (msg: string) => void;
@@ -28,4 +29,9 @@ export type MemoryUsage = {
   heapUsed: number;
   external: number;
   arrayBuffers: number;
+};
+
+export type MemorySnap = {
+  allocated: MemoryUsage;
+  delta: string;
 };

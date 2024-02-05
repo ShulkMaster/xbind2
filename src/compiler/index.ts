@@ -8,23 +8,50 @@ import { Crossbind } from './Crossbind';
 import { res } from 'scope/Resolver';
 import { ReactPlugin, VuePlugin } from 'plugins';
 import { TemplateReplacer } from './TemplateReplacer';
-import { LogLevel, MemoryUsage } from 'types/logging';
+import { LogLevel, MemorySnap } from 'types/logging';
+import * as process from 'process';
 
 export * from './Crossbind';
 
+function plugFactory(option: CompileOptions): (ReactPlugin | VuePlugin)[] {
+  switch (option.plugin) {
+    case 'react': {
+      const p = new ReactPlugin(option.output);
+      p.setResolver(res);
+      return [p];
+    }
+    case 'vue': {
+      const p = new VuePlugin(option.output);
+      p.setResolver(res);
+      return [p];
+    }
+  }
+
+  const rPlugin = new ReactPlugin(option.output);
+  const vPlugin = new VuePlugin(option.output);
+  rPlugin.setResolver(res);
+  vPlugin.setResolver(res);
+  return [rPlugin, vPlugin];
+}
+
+const heapData: MemorySnap[] = [];
+
+function logMemoryUsage(l: LogLevel) {
+  const logMemory = l === LogLevel.DEBUG || l === LogLevel.PERFORMANCE;
+  if (!logMemory) {
+    return;
+  }
+  heapData.push({
+    allocated: process.memoryUsage(),
+    delta: process.hrtime.bigint().toString(),
+  });
+}
+
 export function compile(source: string, option: CompileOptions): void {
-  console.time();
+  const startTime = process.hrtime.bigint();
   const level = asLogLevel(option.log);
   Logger.setLevel(level);
-  let timer: number = 0;
-  const heapData: MemoryUsage[] = [];
-
-  if (level === LogLevel.DEBUG) {
-    heapData.push(process.memoryUsage());
-    timer = setInterval(() => {
-      heapData.push(process.memoryUsage());
-    }, 100) as unknown as number;
-  }
+  logMemoryUsage(level);
 
   const sourceFiles = findFiles(source);
   Logger.info(`Found ${sourceFiles.length} files to compile`);
@@ -36,6 +63,7 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   const parseUnits = sourceFiles.map(parseHaibt);
+  logMemoryUsage(level);
   const totalErrors = parseUnits.reduce((acc, unit) => acc + unit.errors, 0);
   if (totalErrors > 0) {
     Logger.error(`Unable to compile, found ${totalErrors} syntax errors`);
@@ -43,12 +71,16 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   const visitedUnits = parseUnits.map(visitHaibt);
+  logMemoryUsage(level);
   const crossBind = new Crossbind();
   const replacer = new TemplateReplacer();
 
   visitedUnits.forEach(unit => res.registerUnit(unit));
+  logMemoryUsage(level);
   visitedUnits.forEach(unit => replacer.replaceStyles(unit.program));
+  logMemoryUsage(level);
   visitedUnits.forEach(unit => crossBind.check(unit.program));
+  logMemoryUsage(level);
   if (res.checkErrors.length > 0) {
     Logger.compileErrors(res.checkErrors);
     Logger.error(`Compilation failure, found ${res.checkErrors.length} errors`);
@@ -56,27 +88,26 @@ export function compile(source: string, option: CompileOptions): void {
   }
 
   res.triggerFill();
+  logMemoryUsage(level);
   if (res.checkErrors.length > 0) {
     Logger.compileErrors(res.checkErrors);
     Logger.error(`Compilation failure, found ${res.checkErrors.length} errors`);
     return;
   }
   visitedUnits.forEach(unit => Logger.debug(unit.program));
-  const rPlugin = new ReactPlugin(option.output);
-  const vPlugin = new VuePlugin(option.output);
-  rPlugin.setResolver(res);
-  vPlugin.setResolver(res);
+  const plugins = plugFactory(option);
   visitedUnits.forEach(unit => {
-    rPlugin.writeProgram(unit.program);
-    vPlugin.writeProgram(unit.program);
+    logMemoryUsage(level);
+    plugins.forEach(plugin => plugin.writeProgram(unit.program));
   });
-  clearInterval(timer);
-  if(level === LogLevel.DEBUG) {
-    heapData.push(process.memoryUsage());
-    Logger.debug(heapData);
-  }
+  logMemoryUsage(level);
   Logger.info('Compilation complete:');
-  console.timeEnd();
+  const endTime = process.hrtime.bigint();
+  Logger.performance({
+    start: startTime.toString(),
+    end: endTime.toString(),
+    memory: heapData,
+  });
 }
 
 export function parseHaibt(sourceFile: string): ParseUnit {

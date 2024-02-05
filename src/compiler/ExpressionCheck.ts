@@ -86,7 +86,7 @@ export class ExpressionCheck {
   }
 
   checkPostfixFollow(exp: N.PostfixExpressionNode, previous: HSymbol): ExpressionCheckResult {
-    const {call, indexed, member, operator, follow} = exp;
+    const {call, member, operator, follow} = exp;
 
     let check: Resolution;
     if (member) {
@@ -103,6 +103,10 @@ export class ExpressionCheck {
 
     if (check) {
       return {valid: true, result: check};
+    }
+
+    if (operator) {
+      throw new Error('Not implemented');
     }
 
     return { result: undefinedSymbol, valid: false };

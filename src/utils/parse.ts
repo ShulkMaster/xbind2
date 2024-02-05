@@ -25,6 +25,9 @@ export function asLogLevel(level: string): LogLevel {
       return LogLevel.INFO;
     case 'debug':
       return LogLevel.DEBUG;
+    case 'performance':
+    case 'perf':
+      return LogLevel.PERFORMANCE;
     default:
       return LogLevel.ERROR;
   }

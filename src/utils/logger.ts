@@ -69,6 +69,10 @@ export class Logger {
     this.log(LogLevel.ERROR, message, padding);
   }
 
+  public static performance(message: Loggable, padding?: number): void {
+    this.log(LogLevel.PERFORMANCE, message, padding);
+  }
+
   public static compileErrors(errors: CompileError[]): void {
     for (const error of errors) {
       const { file, column, line, message} = error;
