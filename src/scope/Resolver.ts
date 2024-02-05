@@ -30,7 +30,7 @@ export class Resolver {
   }
 
   public registerUnit(unit: VisitedUnit): void {
-    const program = unit.program;
+    const program = unit.program!;
     const module = new ModuleTable(program.scope);
     module.registerProgram(program);
     this.modules.set(program.scope.join('.'), module);

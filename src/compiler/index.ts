@@ -70,16 +70,17 @@ export function compile(source: string, option: CompileOptions): void {
     return;
   }
 
-  const visitedUnits = parseUnits.map(visitHaibt);
+  const visitedUnits = parseUnits.map(visitHaibt)
+    .filter(unit => unit.program !== null);
   logMemoryUsage(level);
   const crossBind = new Crossbind();
   const replacer = new TemplateReplacer();
 
   visitedUnits.forEach(unit => res.registerUnit(unit));
   logMemoryUsage(level);
-  visitedUnits.forEach(unit => replacer.replaceStyles(unit.program));
+  visitedUnits.forEach(unit => replacer.replaceStyles(unit.program!));
   logMemoryUsage(level);
-  visitedUnits.forEach(unit => crossBind.check(unit.program));
+  visitedUnits.forEach(unit => crossBind.check(unit.program!));
   logMemoryUsage(level);
   if (res.checkErrors.length > 0) {
     Logger.compileErrors(res.checkErrors);
@@ -94,11 +95,11 @@ export function compile(source: string, option: CompileOptions): void {
     Logger.error(`Compilation failure, found ${res.checkErrors.length} errors`);
     return;
   }
-  visitedUnits.forEach(unit => Logger.debug(unit.program));
+  visitedUnits.forEach(unit => Logger.debug(unit.program!));
   const plugins = plugFactory(option);
   visitedUnits.forEach(unit => {
     logMemoryUsage(level);
-    plugins.forEach(plugin => plugin.writeProgram(unit.program));
+    plugins.forEach(plugin => plugin.writeProgram(unit.program!));
   });
   logMemoryUsage(level);
   Logger.info('Compilation complete:');
@@ -129,7 +130,9 @@ export function parseHaibt(sourceFile: string): ParseUnit {
 function visitHaibt(unit: ParseUnit): VisitedUnit {
   const visitor = new ProgramVisitor(unit.fileName);
   const result = visitor.visitProgram(unit.program);
-  Logger.debug(result);
+  if (result) {
+    Logger.debug(result);
+  }
   return {
     program: result,
     source: unit.source,

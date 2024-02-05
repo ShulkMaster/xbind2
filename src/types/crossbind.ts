@@ -15,7 +15,7 @@ export type ParseUnit = {
 }
 
 export type VisitedUnit = {
-  program: ProgramNode;
+  program: ProgramNode | null;
   source: string;
   fileName: string;
 };

@@ -23,11 +23,11 @@ export class ProgramVisitor extends BaseVisitor<ProgramResult> {
   }
 
 
-  visitProgram = (ctx: H.ProgramContext): ProgramNode => {
+  visitProgram = (ctx: H.ProgramContext): ProgramNode | null => {
     const rootModule = ctx.module_();
 
     if (rootModule.getChildCount() < 1) {
-      throw new Error('Program must have at least one module');
+      return null;
     }
 
     this.visit(rootModule);

@@ -20,6 +20,6 @@ export type ProgramNode = {
   styles: StyleNode[];
 };
 
-export type ProgramResult = ProgramNode | void;
+export type ProgramResult = ProgramNode | void | null;
 
 export type OrArray<T> = T | T[];
