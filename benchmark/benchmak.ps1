@@ -16,9 +16,9 @@ for ($i = 0; $i -lt $repetitions; $i++) {
   Write-Host "Run $i started"
   $uptime = Get-Date
   if ($generation) {
-    crossbind -p react -l perf $fPath >> benchmark.json
+    crossbind -p react -l perf $fPath >> $outFile
   } else {
-    crossbind -p react -l perf --no-generation $fPath >> benchmark.json
+    crossbind -p react -l perf --no-generation $fPath >> $outFile
   }
   "," | Out-File -FilePath $outFile -Append
   $downtime = Get-Date
