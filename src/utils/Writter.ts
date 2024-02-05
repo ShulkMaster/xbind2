@@ -110,7 +110,7 @@ export class Writer {
   public static castExpression(exp: E.CastExpressionNode): string {
     const typeElement = exp.as;
     const expression = this.writeExpression(exp.left);
-    return `${expression} as ${typeElement.text}`;
+    return `${expression} as unknown as ${typeElement.text}`;
   }
 
   public static multiplicativeExpression(exp: E.MultiplicativeExpressionNode): string {

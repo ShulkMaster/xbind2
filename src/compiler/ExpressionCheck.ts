@@ -1,9 +1,9 @@
 import { ExpressionCheckResult } from 'types/crossbind';
 import * as N from 'types/nodes';
 import { res } from 'scope/Resolver';
-import { undefinedSymbol } from 'bcl/lang/lib';
+import { nativeBool, nativeNumber, nativeString, undefinedSymbol } from 'bcl/lang/lib';
 import { asName, getTokenFromExp, resolveConstantExpression } from './helper';
-import { HSymbol, LiteralObjectSymbol, LiteralType, Resolution } from 'types/scope';
+import { HSymbol, LiteralObjectSymbol, LiteralType, Resolution, SymbolKind } from 'types/scope';
 import { expCheckCall, expCheckMember } from './ExpResolver';
 
 export class ExpressionCheck {
@@ -22,6 +22,12 @@ export class ExpressionCheck {
         return this.checkObjectLiteral(expression);
       case N.ExpressionKind.PostfixExpression:
         return this.checkPostfixExpression(expression);
+      case N.ExpressionKind.UnaryExpression:
+        return this.checkUnaryExpression(expression);
+      case N.ExpressionKind.CastExpression:
+        return this.checkCastExp(expression);
+      case N.ExpressionKind.MultiplicativeExpression:
+        return this.checkMulti(expression);
       case N.ExpressionKind.AssignmentExpression:
       case N.ExpressionKind.ConditionalExpression:
       case N.ExpressionKind.TernaryExpression:
@@ -30,9 +36,6 @@ export class ExpressionCheck {
       case N.ExpressionKind.EqualityExpression:
       case N.ExpressionKind.RelationalExpression:
       case N.ExpressionKind.AdditiveExpression:
-      case N.ExpressionKind.MultiplicativeExpression:
-      case N.ExpressionKind.CastExpression:
-      case N.ExpressionKind.UnaryExpression:
         throw new Error(`Not implemented ${expression.kind}`);
       default:
         throw new Error('Invalid expression');
@@ -134,5 +137,91 @@ export class ExpressionCheck {
     }
 
     return { result: symbol,  valid: true };
+  }
+
+  checkUnaryExpression(exp: N.UnaryExpressionNode): ExpressionCheckResult {
+    const { operator, right} = exp;
+    const check = this.checkExpression(right);
+    if (!check.valid) {
+      return check;
+    }
+
+    switch (operator.text) {
+      case '!':
+        return { valid: true, result: nativeBool };
+      case '+':
+      case '-': {
+        if (check.result.kind !== SymbolKind.Object) {
+          res.addError({
+            message: 'Invalid operation - not apply to a number or string',
+            column: operator.column,
+            line: operator.line,
+          });
+          return { valid: false, result: undefinedSymbol };
+        }
+
+        const isNumber = check.result.fqnd === nativeNumber.fqnd;
+        const isString = check.result.fqnd === nativeString.fqnd;
+
+        if(!isNumber && !isString) {
+          res.addError({
+            message: `Invalid: operation ${operator.text} not apply to a number or string`,
+            column: operator.column,
+            line: operator.line,
+          });
+          return { valid: false, result: undefinedSymbol };
+        }
+        return { valid: true, result: nativeNumber };
+      }
+      default:
+        throw new Error('Invalid unary operator');
+    }
+  }
+
+  checkCastExp(exp: N.CastExpressionNode): ExpressionCheckResult {
+      const { as } = exp;
+      const resolution =  res.resolve({symbolName: as.text});
+      if (!resolution) {
+        res.addError({
+          message: `Unresolved identifier ${as.text}`,
+          column: as.column,
+          line: as.line,
+        });
+        return { valid: false, result: undefinedSymbol };
+      }
+      return { valid: true, result: resolution };
+  }
+
+  checkMulti(exp: N.MultiplicativeExpressionNode): ExpressionCheckResult {
+      const { left, operator, right } = exp;
+      const leftCheck = this.checkExpression(left).result;
+      const rightCheck = this.checkExpression(right).result;
+
+      if (leftCheck.kind !== SymbolKind.Object || rightCheck.kind !== SymbolKind.Object) {
+        return { valid: false, result: undefinedSymbol };
+      }
+
+      const lisNumber = leftCheck.fqnd === nativeNumber.fqnd;
+      const risNumber = rightCheck.fqnd === nativeNumber.fqnd;
+
+      if (!lisNumber) {
+        res.addError({
+          message: 'Invalid operation: left operand is not a number',
+          column: operator.column,
+          line: operator.line,
+        });
+        return { valid: false, result: undefinedSymbol };
+      }
+
+      if (!risNumber) {
+        res.addError({
+          message: 'Invalid operation: right operand is not a number',
+          column: operator.column,
+          line: operator.line,
+        });
+        return { valid: false, result: undefinedSymbol };
+      }
+
+      return { valid: true, result: nativeNumber };
   }
 }
