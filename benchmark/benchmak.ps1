@@ -10,21 +10,21 @@ $fileNameOnly = [System.IO.Path]::GetFileNameWithoutExtension($fPath)
 
 $outFile = "results\$fileNameOnly.json"
 
-"{`r`n  `"file`": `"$file_name`",`r`n  `"runs`": [`r`n" | Out-File -FilePath $outFile -Force
+"{`r`n  `"file`": `"$file_name`",`r`n  `"runs`": [`r`n" | Out-File -Encoding utf8  -FilePath $outFile -Force
 
 for ($i = 0; $i -lt $repetitions; $i++) {
   Write-Host "Run $i started"
   $uptime = Get-Date
   if ($generation) {
-    crossbind -p react -l perf $fPath >> $outFile
+    crossbind -p react -l perf $fPath | Out-File -Encoding utf8 -FilePath $outFile -Append
   } else {
-    crossbind -p react -l perf --no-generation $fPath >> $outFile
+    crossbind -p react -l perf --no-generation $fPath | Out-File -Encoding utf8 -FilePath $outFile -Append
   }
-  "," | Out-File -FilePath $outFile -Append
+  "," | Out-File -Encoding utf8 -FilePath $outFile -Append
   $downtime = Get-Date
   Write-Host "Run $i took " ($downtime - $uptime).TotalSeconds " seconds"
 }
 
-"  ]`r`n}" | Out-File -FilePath $outFile -Append
+"  ]`r`n}" | Out-File -Encoding utf8 -FilePath $outFile -Append
 
 

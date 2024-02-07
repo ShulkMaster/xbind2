@@ -6,9 +6,7 @@ function generateFileName(args: number[]): string {
   const keys = ['c', 'p', 'n', 'l', 'a'];
   let fileName = '';
   keys.forEach((key, index) => {
-    if (args[index]) {
       fileName += `${key}${args[index]}-`;
-    }
   });
   fileName = fileName.slice(0, -1);
 
