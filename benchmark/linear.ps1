@@ -1,10 +1,5 @@
-param (
-  [Parameter(Position=0)][int]$repetitions = 10,
-  [Parameter(Position=1)][switch]$generation = $false
-)
-
-for ($i = 50; $i -lt 864; $i = $i + 50) {
-  & ".\benchmak.ps1" -repetitions $repetitions -generation:$generation -fPath
+for ($attribs = 1; $attribs -lt 10; $attribs++) {
+  for ($levels = 1; $levels -lt 5; $levels++) {
+   node .\scripter.js 1 0 2 $levels $attribs
+  }
 }
-
-& ".\benchmak.ps1" -repetitions $repetitions -generation:$generation -fPath "test/c1-p0-n1-n864-l0-a0.hbt"
