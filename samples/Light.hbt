@@ -1,5 +1,8 @@
 component Light {
-  prop msg: string = msg.concat("xd",  5);
-
-  render ();
+  prop times: number = 5 + 5 * 4;
+  render (
+    <div>
+      <p>Hello word</p>
+    </div>
+  );
 }

@@ -1,0 +1,10 @@
+component Image {
+  prop src: string;
+
+  render (
+    <div>
+      <img {src} />
+      <Span />
+    </div>
+  );
+}

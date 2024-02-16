@@ -30,7 +30,6 @@ export class ReactPlugin {
     const printer = new Printer();
     const hasStyles = program.styles.length > 0;
 
-    printer.appendLine('//@ts-nocheck');
     const hasOutlet = program.components.some(c => c.hasOutlet);
     if (hasOutlet) {
       printer.appendLine("import React from 'react';");

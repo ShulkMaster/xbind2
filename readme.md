@@ -3,6 +3,8 @@
 ## documentos
 - [documentos](./docs)
 - [código fuente](./src)
+- [gramática](./grammar)
+- [Ejemplos de código](./samples)
 
 ## Sobre el proyecto
 Este proyecto define la gramática para el lenguaje Haibt. Esta gramática es LL1
