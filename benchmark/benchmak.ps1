@@ -56,5 +56,5 @@ Function AttribTest([int]$repetitions, [switch]$generation) {
   }
 }
 
-Runs "test/c1-p0-n2-l5-a0.hbt" $repetitions $generation
+Runs "test/c1-p0-n5-l5-a0.hbt" $repetitions $generation
 
